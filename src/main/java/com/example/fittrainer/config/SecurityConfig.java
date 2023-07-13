@@ -25,8 +25,8 @@ public class SecurityConfig {
         http.cors(cors -> cors.disable())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/login", "/test", "/register", "/api/v1/test/public","/api/v1/users/**","/api/v1/auth/**").permitAll()
-                        .requestMatchers("/admin").hasAuthority(UserRole.ADMIN.name())
+                        .requestMatchers("/login", "/profiles","/test", "/register", "/api/v1/test/public","/api/v1/users/**","/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/test/admin").hasAuthority(UserRole.ADMIN.name())
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

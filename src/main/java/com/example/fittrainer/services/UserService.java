@@ -2,14 +2,19 @@ package com.example.fittrainer.services;
 
 import com.example.fittrainer.models.User;
 import com.example.fittrainer.repositories.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
 
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public User findByUsername(String username) {
@@ -21,6 +26,8 @@ public class UserService {
     }
 
     public void save(User user) {
+        user.setRegistrationDate(LocalDate.now());
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
     }
 
