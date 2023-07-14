@@ -1,24 +1,33 @@
 package com.example.fittrainer.services;
 
 import com.example.fittrainer.config.JwtService;
-import com.example.fittrainer.models.Profile;
-import com.example.fittrainer.models.User;
-import com.example.fittrainer.repositories.ProfileRepository;
+import com.example.fittrainer.models.*;
+import com.example.fittrainer.repositories.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class ProfileService {
     private final ProfileRepository profileRepository;
     private final UserService userService;
     private final JwtService jwtService;
+    private final DietaryPreferencesRepository dietaryPreferencesRepository;
+    private final FoodAllergiesRepository foodAllergiesRepository;
+    private final GoalsRepository goalsRepository;
+    private final HealthConditionsRepository healthConditionsRepository;
 
-    public ProfileService(ProfileRepository profileRepository, UserService userService, JwtService jwtService) {
+    public ProfileService(ProfileRepository profileRepository, UserService userService, JwtService jwtService, DietaryPreferencesRepository dietaryPreferencesRepository, FoodAllergiesRepository foodAllergiesRepository, GoalsRepository goalsRepository, HealthConditionsRepository healthConditionsRepository) {
         this.profileRepository = profileRepository;
         this.userService = userService;
         this.jwtService = jwtService;
+        this.dietaryPreferencesRepository = dietaryPreferencesRepository;
+        this.foodAllergiesRepository = foodAllergiesRepository;
+        this.goalsRepository = goalsRepository;
+        this.healthConditionsRepository = healthConditionsRepository;
     }
 
     public Profile createProfile(Profile profile) {
@@ -73,11 +82,35 @@ public class ProfileService {
         return profileRepository.findByUserId(userDetails.getId());
     }
 
+    public int getProfileIdByUsername(String username) {
+        String tokenUsername = jwtService.getCurrentUsername();
+        User userDetails = userService.findByUsername(tokenUsername);
+        return profileRepository.findByUserId(userDetails.getId()).getProfileId();
+    }
+
     public void deleteProfileByUsername(String username) {
 
         Profile profile = getProfileByUsername(username);
 
         profileRepository.deleteById(profile.getProfileId());
     }
+
+    public FullProfile getFullProfileByUsername(String username) {
+
+          String tokenUsername = jwtService.getCurrentUsername();
+          User userDetails = userService.findByUsername(tokenUsername);
+          Profile profile = profileRepository.findByUserId(userDetails.getId());
+
+            if (profile == null) {
+                throw new RuntimeException("Profile not found with username: " + username);
+            }
+
+            List<DietaryPreferences> dietaryPreferences = dietaryPreferencesRepository.findByProfileId(profile.getProfileId());
+            List<FoodAllergy> foodAllergies = foodAllergiesRepository.findByProfileId(profile.getProfileId());
+            List<Goals> goals = goalsRepository.findByProfileId(profile.getProfileId());
+            List<HealthCondition> healthConditions = healthConditionsRepository.findByProfileId(profile.getProfileId());
+
+            return new FullProfile(profile, dietaryPreferences, foodAllergies, goals, healthConditions);
+     }
 }
 

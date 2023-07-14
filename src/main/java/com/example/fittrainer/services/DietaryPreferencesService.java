@@ -10,13 +10,16 @@ import java.util.List;
 @Service
 public class DietaryPreferencesService {
     private final DietaryPreferencesRepository dietaryPreferencesRepository;
+    private final ProfileService profileService;
 
     @Autowired
-    public DietaryPreferencesService(DietaryPreferencesRepository dietaryPreferencesRepository) {
+    public DietaryPreferencesService(DietaryPreferencesRepository dietaryPreferencesRepository, ProfileService profileService) {
         this.dietaryPreferencesRepository = dietaryPreferencesRepository;
+        this.profileService = profileService;
     }
 
-    public DietaryPreferences createDietaryPreference(DietaryPreferences dietaryPreferences) {
+    public DietaryPreferences createDietaryPreference(String username ,DietaryPreferences dietaryPreferences) {
+        dietaryPreferences.setProfileId(profileService.getProfileIdByUsername(username));
         return dietaryPreferencesRepository.create(dietaryPreferences);
     }
 
@@ -28,7 +31,10 @@ public class DietaryPreferencesService {
         return dietaryPreferencesRepository.findById(preferenceId);
     }
 
-    public DietaryPreferences updateDietaryPreference(int id, DietaryPreferences updatedDietaryPreferences) {
+    public DietaryPreferences updateDietaryPreference(String username, DietaryPreferences updatedDietaryPreferences) {
+        // Get the existing dietary preferences from the repository
+
+        int id = profileService.getProfileIdByUsername(username);
         DietaryPreferences existingDietaryPreferences = dietaryPreferencesRepository.findById(id);
 
         if (existingDietaryPreferences == null) {
@@ -39,7 +45,6 @@ public class DietaryPreferencesService {
         existingDietaryPreferences.setVegetarian(updatedDietaryPreferences.isVegetarian());
         existingDietaryPreferences.setVegan(updatedDietaryPreferences.isVegan());
         existingDietaryPreferences.setGlutenFree(updatedDietaryPreferences.isGlutenFree());
-        existingDietaryPreferences.setFoodAllergies(updatedDietaryPreferences.getFoodAllergies());
 
         // Save the updated dietary preferences back to the repository
         return dietaryPreferencesRepository.update(existingDietaryPreferences);
@@ -56,4 +61,12 @@ public class DietaryPreferencesService {
         return dietaryPreferencesRepository.create(dietaryPreferences);
     }
 
+    public List<DietaryPreferences> getDietaryPreferencesByUsername(String username) {
+        return dietaryPreferencesRepository.findByProfileId(profileService.getProfileIdByUsername(username));
+    }
+
+    public void deleteDietaryPreference(int preferenceId) {
+        dietaryPreferencesRepository.deleteById(preferenceId);
+
+    }
 }

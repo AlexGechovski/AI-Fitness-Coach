@@ -83,10 +83,6 @@ public class ProfileRepository {
 //        }, username);
 //    }
 
-    public void deleteByUsername(String username) {
-        String query = "DELETE FROM Profile WHERE Username = ?";
-        jdbcTemplate.update(query, username);
-    }
 
     public boolean existsByUserId(Long userId) {
         String query = "SELECT COUNT(*) FROM Profile WHERE UserID = ?";
@@ -94,4 +90,19 @@ public class ProfileRepository {
         return count > 0;
     }
 
+    public Profile findByUsername(String username) {
+        String query = "SELECT * FROM Profile WHERE Username = ?";
+        return jdbcTemplate.queryForObject(query, (resultSet, rowNum) -> {
+            Profile profile = new Profile();
+            profile.setProfileId(resultSet.getInt("ProfileID"));
+            profile.setUserId(resultSet.getInt("UserID"));
+            profile.setAge(resultSet.getInt("Age"));
+            profile.setGender(resultSet.getString("Gender"));
+            profile.setHeight(resultSet.getFloat("Height"));
+            profile.setWeight(resultSet.getFloat("Weight"));
+            profile.setBodyFatPercentage(resultSet.getFloat("BodyFatPercentage"));
+            profile.setMaintainCalories(resultSet.getInt("MaintainCalories"));
+            return profile;
+        }, username);
+    }
 }

@@ -11,13 +11,16 @@ import java.util.List;
 @Service
 public class HealthConditionsService {
     private final HealthConditionsRepository healthConditionsRepository;
+    private final ProfileService profileService;
 
     @Autowired
-    public HealthConditionsService(HealthConditionsRepository healthConditionsRepository) {
+    public HealthConditionsService(HealthConditionsRepository healthConditionsRepository, ProfileService profileService) {
         this.healthConditionsRepository = healthConditionsRepository;
+        this.profileService = profileService;
     }
 
-    public HealthCondition createHealthCondition(HealthCondition healthConditions) {
+    public HealthCondition createHealthCondition(String username, HealthCondition healthConditions) {
+        healthConditions.setProfileId(profileService.getProfileIdByUsername(username));
         return healthConditionsRepository.create(healthConditions);
     }
 
@@ -35,6 +38,10 @@ public class HealthConditionsService {
 
     public void deleteHealthConditionById(int conditionId) {
         healthConditionsRepository.deleteById(conditionId);
+    }
+
+    public List<HealthCondition> getHealthConditionsByUsername(String username) {
+        return healthConditionsRepository.findByProfileId(profileService.getProfileIdByUsername(username));
     }
 }
 

@@ -5,18 +5,26 @@ import com.example.fittrainer.repositories.FoodAllergiesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.IllegalFormatCodePointException;
 import java.util.List;
 
 @Service
 public class FoodAllergiesService {
     private final FoodAllergiesRepository foodAllergiesRepository;
+    private final ProfileService profileService;
 
     @Autowired
-    public FoodAllergiesService(FoodAllergiesRepository foodAllergiesRepository) {
+    public FoodAllergiesService(FoodAllergiesRepository foodAllergiesRepository, ProfileService profileService) {
         this.foodAllergiesRepository = foodAllergiesRepository;
+
+        this.profileService = profileService;
     }
 
-    public FoodAllergy createFoodAllergy(FoodAllergy foodAllergy) {
+    public FoodAllergy createFoodAllergy(String username, FoodAllergy foodAllergy) {
+        if(foodAllergy.getAllergyName() == null) {
+            throw new IllegalArgumentException("Allergy name cannot be null");
+        }
+        foodAllergy.setProfileId(profileService.getProfileIdByUsername(username));
         return foodAllergiesRepository.create(foodAllergy);
     }
 
@@ -34,5 +42,9 @@ public class FoodAllergiesService {
 
     public void deleteFoodAllergyById(int allergyId) {
         foodAllergiesRepository.deleteById(allergyId);
+    }
+
+    public List<FoodAllergy> getFoodAllergiesByUsername(String username) {
+        return foodAllergiesRepository.findByProfileId(profileService.getProfileIdByUsername(username));
     }
 }

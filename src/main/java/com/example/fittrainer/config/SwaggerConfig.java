@@ -19,15 +19,8 @@
 //                .select()
 //                .apis(RequestHandlerSelectors.basePackage("com.example.fittrainer.controllers"))
 //                .paths(PathSelectors.any())
-//                .build()
-//                .apiInfo(apiInfo());
-//    }
-//
-//    private ApiInfo apiInfo() {
-//        return new ApiInfoBuilder()
-//                .title("Your API Title")
-//                .description("Your API Description")
-//                .version("1.0.0")
 //                .build();
 //    }
+//
 //}
+//

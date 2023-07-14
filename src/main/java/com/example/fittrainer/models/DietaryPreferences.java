@@ -8,7 +8,6 @@ public class DietaryPreferences {
     private boolean vegetarian;
     private boolean vegan;
     private boolean glutenFree;
-    private List<String> foodAllergies;
 
     public int getPreferenceId() {
         return preferenceId;
@@ -50,13 +49,7 @@ public class DietaryPreferences {
         this.glutenFree = glutenFree;
     }
 
-    public List<String> getFoodAllergies() {
-        return foodAllergies;
-    }
 
-    public void setFoodAllergies(List<String> foodAllergies) {
-        this.foodAllergies = foodAllergies;
-    }
 
     // Getters and Setters
 }
