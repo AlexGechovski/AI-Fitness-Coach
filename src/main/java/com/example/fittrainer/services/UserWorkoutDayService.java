@@ -116,4 +116,29 @@ public class UserWorkoutDayService {
     }
 
 
+    public List<UserWeeklyWorkoutDTO> createUserWorkoutDays(String username, List<UserWeeklyWorkoutDTO> userWorkoutDays) {
+        List<UserWeeklyWorkoutDTO> createdWorkoutDays = new ArrayList<>();
+
+        for (UserWeeklyWorkoutDTO userWorkoutDay : userWorkoutDays) {
+            UserWeeklyWorkoutDTO createdWorkoutDay = createUserWorkoutDay(username, userWorkoutDay);
+            createdWorkoutDays.add(createdWorkoutDay);
+        }
+
+        return createdWorkoutDays;
+    }
+
+    public void deleteUserWorkoutDay(String username) {
+        // Retrieve the profile ID based on the username
+        Profile user = profileService.getProfileByUsername(username);
+
+        // Check if the user workout day exists
+        List<UserWorkoutDay> userWorkoutDays = userWorkoutDayRepository.getUserWorkoutDaysByProfileId(user.getProfileId());
+
+
+        // Delete the user workout day
+        for (UserWorkoutDay userWorkoutDay : userWorkoutDays) {
+            userWorkoutDayRepository.delete(userWorkoutDay);
+        }
+    }
+
 }

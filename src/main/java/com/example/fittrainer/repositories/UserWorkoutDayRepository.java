@@ -65,6 +65,14 @@ public class UserWorkoutDayRepository {
         }
     }
 
+    public void deleteAll(List<UserWorkoutDay> userWorkoutDays) {
+    }
+
+    public void delete(UserWorkoutDay userWorkoutDay) {
+        String query = "DELETE FROM UserWorkoutDay WHERE user_workout_day_id = ?";
+        jdbcTemplate.update(query, userWorkoutDay.getUserWorkoutDayId());
+    }
+
 
     // Add other custom methods if needed
 }

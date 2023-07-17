@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -35,13 +36,22 @@ public class UserWeeklyWorkoutController {
 //        return ResponseEntity.ok(userWorkoutDay);
 //    }
 
-    @PostMapping
-    @ApiOperation("Create a new user workout day")
-    public ResponseEntity<UserWeeklyWorkoutDTO> createUserWorkoutDay(@PathVariable String username,
-                                                                     @RequestBody UserWeeklyWorkoutDTO userWorkoutDay) {
-        UserWeeklyWorkoutDTO createdWorkoutDay = userWorkoutDayService.createUserWorkoutDay(username, userWorkoutDay);
-        return ResponseEntity.ok(createdWorkoutDay);
-    }
+//    @PostMapping
+//    @ApiOperation("Create a new user workout day")
+//    public ResponseEntity<UserWeeklyWorkoutDTO> createUserWorkoutDay(@PathVariable String username,
+//                                                                     @RequestBody UserWeeklyWorkoutDTO userWorkoutDay) {
+//        UserWeeklyWorkoutDTO createdWorkoutDay = userWorkoutDayService.createUserWorkoutDay(username, userWorkoutDay);
+//        return ResponseEntity.ok(createdWorkoutDay);
+//    }
+@PostMapping
+@ApiOperation("Create new user workout days")
+public ResponseEntity<List<UserWeeklyWorkoutDTO>> createUserWorkoutDays(@PathVariable String username,
+                                                                        @RequestBody List<UserWeeklyWorkoutDTO> userWorkoutDays) {
+    List<UserWeeklyWorkoutDTO> createdWorkoutDays = userWorkoutDayService.createUserWorkoutDays(username, userWorkoutDays);
+    return ResponseEntity.ok(createdWorkoutDays);
+}
+
+
 //
 //    @PutMapping("/{userWorkoutDayId}")
 //    @ApiOperation("Update an existing user workout day")
@@ -52,13 +62,12 @@ public class UserWeeklyWorkoutController {
 //        return ResponseEntity.ok(updatedUserWorkoutDay);
 //    }
 //
-//    @DeleteMapping("/{userWorkoutDayId}")
-//    @ApiOperation("Delete a user workout day")
-//    public ResponseEntity<Void> deleteUserWorkoutDay(@PathVariable String username,
-//                                                     @PathVariable Long userWorkoutDayId) {
-//        userWorkoutDayService.deleteUserWorkoutDay(username, userWorkoutDayId);
-//        return ResponseEntity.noContent().build();
-//    }
+    @DeleteMapping
+    @ApiOperation("Delete a user workout day")
+    public ResponseEntity<Void> deleteUserWorkoutDay(@PathVariable String username) {
+        userWorkoutDayService.deleteUserWorkoutDay(username);
+        return ResponseEntity.noContent().build();
+    }
 
 
 
