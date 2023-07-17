@@ -2,10 +2,7 @@ package com.example.fittrainer.services;
 
 import com.example.fittrainer.dtos.ExerciseDTO;
 import com.example.fittrainer.dtos.UserWeeklyWorkoutDTO;
-import com.example.fittrainer.models.Exercise;
-import com.example.fittrainer.models.Profile;
-import com.example.fittrainer.models.UserWorkoutDay;
-import com.example.fittrainer.models.Workout;
+import com.example.fittrainer.models.*;
 import com.example.fittrainer.repositories.ExerciseRepository;
 import com.example.fittrainer.repositories.UserWorkoutDayRepository;
 import com.example.fittrainer.repositories.WorkoutExerciseRepository;
@@ -25,15 +22,17 @@ public class UserWorkoutDayService {
 
     private final ProfileService profileService;
     private final ExerciseRepository exerciseRepository;
+    private final ChatGPTService chatGPTService;
 
     @Autowired
     public UserWorkoutDayService(UserWorkoutDayRepository userWorkoutDayRepository,
-                                 WorkoutExerciseRepository workoutExerciseRepository, WorkoutRepository workoutRepository, ProfileService profileService, ExerciseRepository exerciseRepository) {
+                                 WorkoutExerciseRepository workoutExerciseRepository, WorkoutRepository workoutRepository, ProfileService profileService, ExerciseRepository exerciseRepository, ChatGPTService chatGPTService) {
         this.userWorkoutDayRepository = userWorkoutDayRepository;
         this.workoutExerciseRepository = workoutExerciseRepository;
         this.workoutRepository = workoutRepository;
         this.profileService = profileService;
         this.exerciseRepository = exerciseRepository;
+        this.chatGPTService = chatGPTService;
     }
 
     public List<UserWeeklyWorkoutDTO> getUserWeeklyWorkout(String username) {
@@ -141,4 +140,36 @@ public class UserWorkoutDayService {
         }
     }
 
+    public List<UserWeeklyWorkoutDTO> generateUserWorkoutDays(String username, List<UserWeeklyWorkoutDTO> userWorkoutDays) {
+        // Retrieve the profile ID based on the username
+        FullProfile user = profileService.getFullProfileByUsername(username);
+
+        String exampleWeekWorkout = "[{\"day\":\"Monday\",\"workout\":\"UpperBody\",\"exercises\":[{\"name\":\"PushUps\",\"sets\":3,\"reps\":15,\"duration\":null},{\"name\":\"BicepCurls\",\"sets\":3,\"reps\":12,\"duration\":null}],\"dayId\":1},{\"day\":\"Tuesday\",\"workout\":\"LowerBody\",\"exercises\":[{\"name\":\"Squats\",\"sets\":3,\"reps\":15,\"duration\":null},{\"name\":\"Lunges\",\"sets\":3,\"reps\":12,\"duration\":null}],\"dayId\":2},{\"day\":\"Wednesday\",\"workout\":\"RestDay\",\"exercises\":[],\"dayId\":3},{\"day\":\"Thursday\",\"workout\":\"Core\",\"exercises\":[{\"name\":\"Planks\",\"sets\":3,\"reps\":null,\"duration\":\"1min\"},{\"name\":\"RussianTwists\",\"sets\":3,\"reps\":20,\"duration\":null}],\"dayId\":4},{\"day\":\"Friday\",\"workout\":\"UpperBody\",\"exercises\":[{\"name\":\"TricepDips\",\"sets\":3,\"reps\":15,\"duration\":null},{\"name\":\"PullUps\",\"sets\":3,\"reps\":10,\"duration\":null}],\"dayId\":5},{\"day\":\"Saturday\",\"workout\":\"RestDay\",\"exercises\":[],\"dayId\":6},{\"day\":\"Sunday\",\"workout\":\"Cardio\",\"exercises\":[{\"name\":\"Running\",\"sets\":null,\"reps\":null,\"duration\":\"30min\"}],\"dayId\":7}]";
+        String structure = "[{\"day\":\"Monday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":1},{\"day\":\"Tuesday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":2},{\"day\":\"Wednesday\",\"workout\":\"..\",\"exercises\":[],\"dayId\":3},{\"day\":\"Thursday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"duration\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":4},{\"day\":\"Friday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":5},{\"day\":\"Saturday\",\"workout\":\"..\",\"exercises\":[],\"dayId\":6},{\"day\":\"Sunday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"duration\":\"..\"}],\"dayId\":7}]";
+//        String prompt = "Based on my profile and my goals " +
+//                user.toString() +
+//                " Generate a fitness program. Return the answer as this JSON object." +
+//                exampleWeekWorkout;
+
+        String prompt = "Consider the following characteristics and Goals for the user: \n" +
+                user.toString() +
+                "\nGenerate a workout program. Put it in the following JSON structure. Don't add keys that don't exist\n" +
+                structure
+                ;
+        System.out.println(prompt);
+
+        String answer = chatGPTService.getAnswerToQuestion(prompt);
+        System.out.println(answer);
+
+
+//        List<UserWeeklyWorkoutDTO> createdWorkoutDays = new ArrayList<>();
+//
+//        for (UserWeeklyWorkoutDTO userWorkoutDay : userWorkoutDays) {
+//            UserWeeklyWorkoutDTO createdWorkoutDay = createUserWorkoutDay(username, userWorkoutDay);
+//            createdWorkoutDays.add(createdWorkoutDay);
+//        }
+//
+//        return createdWorkoutDays;
+        return  userWorkoutDays;
+    }
 }

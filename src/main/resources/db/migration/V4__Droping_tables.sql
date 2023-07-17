@@ -77,12 +77,14 @@ CREATE TABLE Day (
                      name VARCHAR(20)
 );
 
-CREATE TABLE Exercises (
+DROP TABLE IF EXISTS Exercises;
+
+CREATE TABLE  Exercises (
                            exercise_id INT AUTO_INCREMENT PRIMARY KEY,
                            name VARCHAR(50),
                            sets INT,
                            reps INT,
-                           duration INT
+                           duration varchar(20),
 );
 
 CREATE TABLE Workouts (
@@ -108,3 +110,13 @@ CREATE TABLE UserWorkoutDay (
                                 FOREIGN KEY (day_id) REFERENCES Day(day_id),
                                 FOREIGN KEY (workout_id) REFERENCES Workouts(workout_id)
 );
+
+INSERT INTO Day (name) VALUES
+                           ('Monday'),
+                           ('Tuesday'),
+                           ('Wednesday'),
+                           ('Thursday'),
+                           ('Friday'),
+                           ('Saturday'),
+                           ('Sunday');
+

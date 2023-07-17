@@ -11,6 +11,11 @@ public class Goals {
     // Getters and Setters
 
 
+    @Override
+    public String toString() {
+        return "Goal-" + goalDescription;
+    }
+
     public int getGoalId() {
         return goalId;
     }

@@ -29,6 +29,34 @@ public class FullProfile {
         this.dietaryPreferences = dietaryPreferences;
     }
 
+    private String goalsToString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        for (Goals goal : goals) {
+            sb.append(goal.toString());
+            sb.append(", ");
+        }
+        if (!goals.isEmpty()) {
+            sb.setLength(sb.length() - 2);  // Remove the last comma and space
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+    public String toString() {
+        return "FullProfile{" +
+                "age=" + age +
+                ", gender='" + gender + '\'' +
+                ", height=" + height +
+                ", weight=" + weight +
+                ", bodyFatPercentage=" + bodyFatPercentage +
+                ", maintainCalories=" + maintainCalories +
+                ", foodAllergies=" + foodAllergies +
+                ", goals=" + goalsToString() +
+                ", healthConditions=" + healthConditions +
+                ", dietaryPreferences=" + dietaryPreferences +
+                '}';
+    }
+
 
 
     public int getAge() {

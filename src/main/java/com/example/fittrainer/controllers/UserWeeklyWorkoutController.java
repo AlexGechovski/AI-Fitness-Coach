@@ -43,13 +43,20 @@ public class UserWeeklyWorkoutController {
 //        UserWeeklyWorkoutDTO createdWorkoutDay = userWorkoutDayService.createUserWorkoutDay(username, userWorkoutDay);
 //        return ResponseEntity.ok(createdWorkoutDay);
 //    }
-@PostMapping
-@ApiOperation("Create new user workout days")
-public ResponseEntity<List<UserWeeklyWorkoutDTO>> createUserWorkoutDays(@PathVariable String username,
-                                                                        @RequestBody List<UserWeeklyWorkoutDTO> userWorkoutDays) {
-    List<UserWeeklyWorkoutDTO> createdWorkoutDays = userWorkoutDayService.createUserWorkoutDays(username, userWorkoutDays);
-    return ResponseEntity.ok(createdWorkoutDays);
-}
+    @PostMapping
+    @ApiOperation("Create new user workout days")
+    public ResponseEntity<List<UserWeeklyWorkoutDTO>> createUserWorkoutDays(@PathVariable String username,
+                                                                            @RequestBody List<UserWeeklyWorkoutDTO> userWorkoutDays) {
+        List<UserWeeklyWorkoutDTO> createdWorkoutDays = userWorkoutDayService.createUserWorkoutDays(username, userWorkoutDays);
+        return ResponseEntity.ok(createdWorkoutDays);
+    }
+    @PostMapping("/generate")
+    @ApiOperation("Generate user workout based on user's profile")
+    public ResponseEntity<List<UserWeeklyWorkoutDTO>> generateUserWorkoutDays(@PathVariable String username,
+                                                                            @RequestBody List<UserWeeklyWorkoutDTO> userWorkoutDays) {
+        List<UserWeeklyWorkoutDTO> createdWorkoutDays = userWorkoutDayService.generateUserWorkoutDays(username, userWorkoutDays);
+        return ResponseEntity.ok(createdWorkoutDays);
+    }
 
 
 //
