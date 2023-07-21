@@ -7,6 +7,13 @@ public class HealthCondition {
 
     // Getters and Setters
 
+    @Override
+    public String toString() {
+        return "HealthCondition{" +
+                "conditionDescription='" + conditionDescription + '\'' +
+                '}';
+    }
+
     public int getConditionId() {
         return conditionId;
     }

@@ -27,8 +27,8 @@ public class ExerciseRepository {
         jdbcTemplate.update(connection -> {
             PreparedStatement statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
             statement.setString(1, newExercise.getName());
-            statement.setInt(2, newExercise.getSets());
-            statement.setInt(3, newExercise.getReps());
+            statement.setString(2, newExercise.getSets());
+            statement.setString(3, newExercise.getReps());
             statement.setString(4, newExercise.getDuration());
             return statement;
         }, keyHolder);
@@ -48,8 +48,8 @@ public class ExerciseRepository {
             Exercise exercise = new Exercise();
             exercise.setExerciseId(resultSet.getInt("exercise_id"));
             exercise.setName(resultSet.getString("name"));
-            exercise.setSets(resultSet.getInt("sets"));
-            exercise.setReps(resultSet.getInt("reps"));
+            exercise.setSets(resultSet.getString("sets"));
+            exercise.setReps(resultSet.getString("reps"));
             exercise.setDuration(resultSet.getString("duration"));
             return exercise;
         });
@@ -61,8 +61,8 @@ public class ExerciseRepository {
             Exercise exercise = new Exercise();
             exercise.setExerciseId(resultSet.getInt("exercise_id"));
             exercise.setName(resultSet.getString("name"));
-            exercise.setSets(resultSet.getInt("sets"));
-            exercise.setReps(resultSet.getInt("reps"));
+            exercise.setSets(resultSet.getString("sets"));
+            exercise.setReps(resultSet.getString("reps"));
             exercise.setDuration(resultSet.getString("duration"));
             return exercise;
         }, exerciseId);

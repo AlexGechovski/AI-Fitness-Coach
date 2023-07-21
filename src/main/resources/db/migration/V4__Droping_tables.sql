@@ -3,6 +3,14 @@ DROP TABLE IF EXISTS FoodAllergies;
 DROP TABLE IF EXISTS DietaryPreferences;
 DROP TABLE IF EXISTS HealthConditions;
 DROP TABLE IF EXISTS Goals;
+drop table if exists UserWorkoutDay;
+drop table if exists WorkoutExercises;
+drop table if exists Workouts;
+drop table if exists Day;
+DROP TABLE IF EXISTS Exercises;
+
+
+
 DROP TABLE IF EXISTS Profile;
 DROP TABLE IF EXISTS users;
 
@@ -77,15 +85,14 @@ CREATE TABLE Day (
                      name VARCHAR(20)
 );
 
-DROP TABLE IF EXISTS Exercises;
-
 CREATE TABLE  Exercises (
-                           exercise_id INT AUTO_INCREMENT PRIMARY KEY,
-                           name VARCHAR(50),
-                           sets INT,
-                           reps INT,
-                           duration varchar(20),
+                            exercise_id INT AUTO_INCREMENT PRIMARY KEY,
+                            name VARCHAR(50),
+                            sets varchar(20),
+                            reps varchar(20),
+                            duration varchar(20),
 );
+
 
 CREATE TABLE Workouts (
                           workout_id INT AUTO_INCREMENT PRIMARY KEY,

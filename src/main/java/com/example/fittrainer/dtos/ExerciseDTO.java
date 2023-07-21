@@ -2,9 +2,12 @@ package com.example.fittrainer.dtos;
 
 public class ExerciseDTO {
     private String name;
-    private int sets;
-    private int reps;
+    private String sets;
+    private String reps;
     private String duration;
+
+    public ExerciseDTO() {
+    }
 
     public String getName() {
         return name;
@@ -14,19 +17,19 @@ public class ExerciseDTO {
         this.name = name;
     }
 
-    public int getSets() {
+    public String getSets() {
         return sets;
     }
 
-    public void setSets(int sets) {
+    public void setSets(String sets) {
         this.sets = sets;
     }
 
-    public int getReps() {
+    public String getReps() {
         return reps;
     }
 
-    public void setReps(int reps) {
+    public void setReps(String reps) {
         this.reps = reps;
     }
 

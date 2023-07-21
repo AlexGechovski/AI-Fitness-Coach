@@ -52,9 +52,15 @@ public class UserWeeklyWorkoutController {
     }
     @PostMapping("/generate")
     @ApiOperation("Generate user workout based on user's profile")
-    public ResponseEntity<List<UserWeeklyWorkoutDTO>> generateUserWorkoutDays(@PathVariable String username,
-                                                                            @RequestBody List<UserWeeklyWorkoutDTO> userWorkoutDays) {
-        List<UserWeeklyWorkoutDTO> createdWorkoutDays = userWorkoutDayService.generateUserWorkoutDays(username, userWorkoutDays);
+    public ResponseEntity<List<UserWeeklyWorkoutDTO>> generateUserWorkoutDays(@PathVariable String username) {
+        List<UserWeeklyWorkoutDTO> createdWorkoutDays = userWorkoutDayService.generateUserWorkoutDays(username);
+        return ResponseEntity.ok(createdWorkoutDays);
+    }
+
+    @PostMapping("/generate-params")
+    @ApiOperation("Generate user workout based on user's profile and input")
+    public ResponseEntity<List<UserWeeklyWorkoutDTO>> generateUserWorkoutDaysQuery(@PathVariable String username, @RequestBody String userQuery) {
+        List<UserWeeklyWorkoutDTO> createdWorkoutDays = userWorkoutDayService.generateUserWorkoutDaysOnUserQuery(username, userQuery);
         return ResponseEntity.ok(createdWorkoutDays);
     }
 

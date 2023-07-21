@@ -25,9 +25,11 @@ public class SecurityConfig {
         http.cors(cors -> cors.disable())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/login", "/chat-gpt", "/profiles","/test", "/register", "/api/v1/test/public","/api/v1/test/db-connection","/api/v1/users/**","/api/v1/auth/**", "/api/v1/{username}/weekly-workout").permitAll()
+                        .requestMatchers("/login", "/chat-gpt", "/profiles","/test", "/register",
+                                "/api/v1/test/public","/api/v1/test/db-connection","/api/v1/users/**",
+                                "/api/v1/auth/**", "/api/v1/{username}/weekly-workout").permitAll()
                         .requestMatchers("/api/v1/test/admin").hasAuthority(UserRole.ADMIN.name())
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider);

@@ -7,6 +7,11 @@ import com.example.fittrainer.repositories.ExerciseRepository;
 import com.example.fittrainer.repositories.UserWorkoutDayRepository;
 import com.example.fittrainer.repositories.WorkoutExerciseRepository;
 import com.example.fittrainer.repositories.WorkoutRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -140,36 +145,98 @@ public class UserWorkoutDayService {
         }
     }
 
-    public List<UserWeeklyWorkoutDTO> generateUserWorkoutDays(String username, List<UserWeeklyWorkoutDTO> userWorkoutDays) {
+    public List<UserWeeklyWorkoutDTO> generateUserWorkoutDays(String username) {
         // Retrieve the profile ID based on the username
+        deleteUserWorkoutDay(username);
         FullProfile user = profileService.getFullProfileByUsername(username);
 
-        String exampleWeekWorkout = "[{\"day\":\"Monday\",\"workout\":\"UpperBody\",\"exercises\":[{\"name\":\"PushUps\",\"sets\":3,\"reps\":15,\"duration\":null},{\"name\":\"BicepCurls\",\"sets\":3,\"reps\":12,\"duration\":null}],\"dayId\":1},{\"day\":\"Tuesday\",\"workout\":\"LowerBody\",\"exercises\":[{\"name\":\"Squats\",\"sets\":3,\"reps\":15,\"duration\":null},{\"name\":\"Lunges\",\"sets\":3,\"reps\":12,\"duration\":null}],\"dayId\":2},{\"day\":\"Wednesday\",\"workout\":\"RestDay\",\"exercises\":[],\"dayId\":3},{\"day\":\"Thursday\",\"workout\":\"Core\",\"exercises\":[{\"name\":\"Planks\",\"sets\":3,\"reps\":null,\"duration\":\"1min\"},{\"name\":\"RussianTwists\",\"sets\":3,\"reps\":20,\"duration\":null}],\"dayId\":4},{\"day\":\"Friday\",\"workout\":\"UpperBody\",\"exercises\":[{\"name\":\"TricepDips\",\"sets\":3,\"reps\":15,\"duration\":null},{\"name\":\"PullUps\",\"sets\":3,\"reps\":10,\"duration\":null}],\"dayId\":5},{\"day\":\"Saturday\",\"workout\":\"RestDay\",\"exercises\":[],\"dayId\":6},{\"day\":\"Sunday\",\"workout\":\"Cardio\",\"exercises\":[{\"name\":\"Running\",\"sets\":null,\"reps\":null,\"duration\":\"30min\"}],\"dayId\":7}]";
-        String structure = "[{\"day\":\"Monday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":1},{\"day\":\"Tuesday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":2},{\"day\":\"Wednesday\",\"workout\":\"..\",\"exercises\":[],\"dayId\":3},{\"day\":\"Thursday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"duration\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":4},{\"day\":\"Friday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":5},{\"day\":\"Saturday\",\"workout\":\"..\",\"exercises\":[],\"dayId\":6},{\"day\":\"Sunday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"duration\":\"..\"}],\"dayId\":7}]";
-//        String prompt = "Based on my profile and my goals " +
+//        String exampleWeekWorkout = "[{\"day\":\"Monday\",\"workout\":\"UpperBody\",\"exercises\":[{\"name\":\"PushUps\",\"sets\":3,\"reps\":15,\"duration\":null},{\"name\":\"BicepCurls\",\"sets\":3,\"reps\":12,\"duration\":null}],\"dayId\":1},{\"day\":\"Tuesday\",\"workout\":\"LowerBody\",\"exercises\":[{\"name\":\"Squats\",\"sets\":3,\"reps\":15,\"duration\":null},{\"name\":\"Lunges\",\"sets\":3,\"reps\":12,\"duration\":null}],\"dayId\":2},{\"day\":\"Wednesday\",\"workout\":\"RestDay\",\"exercises\":[],\"dayId\":3},{\"day\":\"Thursday\",\"workout\":\"Core\",\"exercises\":[{\"name\":\"Planks\",\"sets\":3,\"reps\":null,\"duration\":\"1min\"},{\"name\":\"RussianTwists\",\"sets\":3,\"reps\":20,\"duration\":null}],\"dayId\":4},{\"day\":\"Friday\",\"workout\":\"UpperBody\",\"exercises\":[{\"name\":\"TricepDips\",\"sets\":3,\"reps\":15,\"duration\":null},{\"name\":\"PullUps\",\"sets\":3,\"reps\":10,\"duration\":null}],\"dayId\":5},{\"day\":\"Saturday\",\"workout\":\"RestDay\",\"exercises\":[],\"dayId\":6},{\"day\":\"Sunday\",\"workout\":\"Cardio\",\"exercises\":[{\"name\":\"Running\",\"sets\":null,\"reps\":null,\"duration\":\"30min\"}],\"dayId\":7}]";
+        //        String prompt = "Based on my profile and my goals " +
 //                user.toString() +
 //                " Generate a fitness program. Return the answer as this JSON object." +
 //                exampleWeekWorkout;
-
+        String structure = "[{\"day\":\"Monday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":1},{\"day\":\"Tuesday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":2},{\"day\":\"Wednesday\",\"workout\":\"..\",\"exercises\":[],\"dayId\":3},{\"day\":\"Thursday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"duration\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":4},{\"day\":\"Friday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":5},{\"day\":\"Saturday\",\"workout\":\"..\",\"exercises\":[],\"dayId\":6},{\"day\":\"Sunday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"duration\":\"..\"}],\"dayId\":7}]";
         String prompt = "Consider the following characteristics and Goals for the user: \n" +
                 user.toString() +
-                "\nGenerate a workout program. Put it in the following JSON structure. Don't add keys that don't exist\n" +
+                "\nGenerate a workout program. Put it in the following JSON structure. Don't add keys that don't exist. If the a key does not have a value, leave the field empty\n " +
                 structure
                 ;
         System.out.println(prompt);
 
         String answer = chatGPTService.getAnswerToQuestion(prompt);
         System.out.println(answer);
+        String jsonString = chatGPTService.findJson(answer);
 
 
-//        List<UserWeeklyWorkoutDTO> createdWorkoutDays = new ArrayList<>();
-//
-//        for (UserWeeklyWorkoutDTO userWorkoutDay : userWorkoutDays) {
-//            UserWeeklyWorkoutDTO createdWorkoutDay = createUserWorkoutDay(username, userWorkoutDay);
-//            createdWorkoutDays.add(createdWorkoutDay);
-//        }
-//
-//        return createdWorkoutDays;
-        return  userWorkoutDays;
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, false);
+        objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
+        TypeReference<List<UserWeeklyWorkoutDTO>> typeReference = new TypeReference<List<UserWeeklyWorkoutDTO>>() {};
+
+// Deserialize JSON to List<UserWeeklyWorkoutDTO>
+        List<UserWeeklyWorkoutDTO> userWeeklyWorkouts = new ArrayList<>();
+        try {
+            userWeeklyWorkouts = objectMapper.readValue(jsonString, typeReference);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Could not deserialize JSON to List<UserWeeklyWorkoutDTO>");
+        }
+
+
+        List<UserWeeklyWorkoutDTO> createdWorkoutDays = new ArrayList<>();
+
+        for (UserWeeklyWorkoutDTO userWorkoutDay : userWeeklyWorkouts) {
+            UserWeeklyWorkoutDTO createdWorkoutDay = createUserWorkoutDay(username, userWorkoutDay);
+            createdWorkoutDays.add(createdWorkoutDay);
+        }
+
+        return createdWorkoutDays;
+
+    }
+
+
+    public List<UserWeeklyWorkoutDTO> generateUserWorkoutDaysOnUserQuery(String username, String query) {
+        // Retrieve the profile ID based on the username
+        deleteUserWorkoutDay(username);
+        FullProfile user = profileService.getFullProfileByUsername(username);
+
+        String structure = "[{\"day\":\"Monday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":1},{\"day\":\"Tuesday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":2},{\"day\":\"Wednesday\",\"workout\":\"..\",\"exercises\":[],\"dayId\":3},{\"day\":\"Thursday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"duration\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":4},{\"day\":\"Friday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":5},{\"day\":\"Saturday\",\"workout\":\"..\",\"exercises\":[],\"dayId\":6},{\"day\":\"Sunday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"duration\":\"..\"}],\"dayId\":7}]";
+        String prompt =  "\nGenerate a workout program. "+query +
+                "\nConsider the following characteristics and Goals for the user: \n" +  user.toString()
+                +
+                 "\nPut it in the following JSON structure. Don't add keys that don't exist. If the a key does not have a value, leave the field empty\n Add comments to the workout after generating it" +
+                structure
+                ;
+        System.out.println(prompt);
+
+        String answer = chatGPTService.getAnswerToQuestion(prompt);
+        System.out.println(answer);
+        String jsonString = chatGPTService.findJson(answer);
+
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, false);
+        objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
+        TypeReference<List<UserWeeklyWorkoutDTO>> typeReference = new TypeReference<List<UserWeeklyWorkoutDTO>>() {};
+
+// Deserialize JSON to List<UserWeeklyWorkoutDTO>
+        List<UserWeeklyWorkoutDTO> userWeeklyWorkouts = new ArrayList<>();
+        try {
+            userWeeklyWorkouts = objectMapper.readValue(jsonString, typeReference);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Could not deserialize JSON to List<UserWeeklyWorkoutDTO>");
+        }
+
+
+        List<UserWeeklyWorkoutDTO> createdWorkoutDays = new ArrayList<>();
+
+        for (UserWeeklyWorkoutDTO userWorkoutDay : userWeeklyWorkouts) {
+            UserWeeklyWorkoutDTO createdWorkoutDay = createUserWorkoutDay(username, userWorkoutDay);
+            createdWorkoutDays.add(createdWorkoutDay);
+        }
+
+        return createdWorkoutDays;
+
     }
 }

@@ -48,8 +48,8 @@ public class WorkoutExerciseRepository {
             Exercise exercise = new Exercise();
             exercise.setExerciseId(resultSet.getInt("exercise_id"));
             exercise.setName(resultSet.getString("name"));
-            exercise.setSets(resultSet.getInt("sets"));
-            exercise.setReps(resultSet.getInt("reps"));
+            exercise.setSets(resultSet.getString("sets"));
+            exercise.setReps(resultSet.getString("reps"));
             exercise.setDuration(resultSet.getString("duration"));
             return exercise;
         }, workoutId);

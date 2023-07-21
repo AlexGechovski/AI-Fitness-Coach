@@ -8,6 +8,8 @@ public class UserWeeklyWorkoutDTO {
     private String workout;
     private List<ExerciseDTO> exercises;
 
+    public UserWeeklyWorkoutDTO() {
+    }
 
     public String getDay() {
         return day;

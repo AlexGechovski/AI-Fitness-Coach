@@ -42,19 +42,28 @@ public class FullProfile {
         sb.append("]");
         return sb.toString();
     }
+    private String healthConditionsToSting() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        for (HealthCondition healthCondition : healthConditions) {
+            sb.append(healthCondition.toString());
+            sb.append(", ");
+        }
+        if (!healthConditions.isEmpty()) {
+            sb.setLength(sb.length() - 2);  // Remove the last comma and space
+        }
+        sb.append("]");
+        return sb.toString();
+    }
     public String toString() {
         return "FullProfile{" +
                 "age=" + age +
                 ", gender='" + gender + '\'' +
                 ", height=" + height +
                 ", weight=" + weight +
-                ", bodyFatPercentage=" + bodyFatPercentage +
-                ", maintainCalories=" + maintainCalories +
-                ", foodAllergies=" + foodAllergies +
+
                 ", goals=" + goalsToString() +
-                ", healthConditions=" + healthConditions +
-                ", dietaryPreferences=" + dietaryPreferences +
-                '}';
+                ", healthConditions=" + healthConditionsToSting() ;
     }
 
 

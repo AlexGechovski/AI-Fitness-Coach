@@ -15,7 +15,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/profile")
-@Api(tags = "Profiles")
 public class ProfileController {
     private final ProfileService profileService;
     private final FoodAllergiesService foodAllergyService;
