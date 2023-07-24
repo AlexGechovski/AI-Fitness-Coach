@@ -118,6 +118,46 @@ CREATE TABLE UserWorkoutDay (
                                 FOREIGN KEY (workout_id) REFERENCES Workouts(workout_id)
 );
 
+
+-- Create Chat table
+CREATE TABLE `Chat` (
+                        `ChatID` INT AUTO_INCREMENT PRIMARY KEY,
+                        `ProfileID` INT,
+                        `ModelName` VARCHAR(255), -- New column for model name
+                        FOREIGN KEY (`ProfileID`) REFERENCES `Profile` (`ProfileID`)
+);
+
+-- Create Message table
+CREATE TABLE `Message` (
+                           `MessageID` INT AUTO_INCREMENT PRIMARY KEY,
+                           `ChatID` INT,
+                           `Role` VARCHAR(20),
+                           `Content` VARCHAR(500),
+                           `Timestamp` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                           FOREIGN KEY (`ChatID`) REFERENCES `Chat` (`ChatID`)
+);
+
+-- Insert mock data for Chat and Message tables
+INSERT INTO `Chat` (`ChatID`, `ProfileID`, `ModelName`) VALUES
+                                                            (1, 101, 'gpt-3.5-turbo'),
+                                                            (2, 102, 'gpt-3.5-turbo'),
+                                                            (3, 101, 'gpt-3.5-turbo'),
+                                                            (4, 103, 'gpt-3.5-turbo');
+
+INSERT INTO `Message` (`ChatID`, `Role`, `Content`) VALUES
+                                                        (1, 'user', 'Hello, how are you?'),
+                                                        (1, 'assistant', 'I am doing well. How can I assist you?'),
+                                                        (1, 'user', 'I have a question about your products.'),
+                                                        (1, 'assistant', 'Sure, I\'d be happy to help. What do you need to know?'),
+  (2, 'user', 'Hi, is there a sale going on?'),
+  (2, 'assistant', 'Yes, we currently have a 20% off sale on all items.'),
+  (3, 'user', 'Do you offer free shipping?'),
+  (3, 'assistant', 'Yes, we provide free shipping on orders over $50.'),
+  (4, 'user', 'Can I track my order?'),
+  (4, 'assistant', 'Certainly! Once your order ships, you will receive a tracking number.'),
+  (4, 'user', 'Thanks for the information.'),
+  (4, 'assistant', 'Youre welcome! If you have any more questions, feel free to ask.');
+
 INSERT INTO Day (name) VALUES
                            ('Monday'),
                            ('Tuesday'),

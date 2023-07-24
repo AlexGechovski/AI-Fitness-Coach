@@ -6,21 +6,21 @@ import java.util.List;
 public class ChatRequest {
 
     private String model;
-    private List<Message> messages;
+    private List<MessageDTO> messages;
 
 
     public ChatRequest(String model, String prompt) {
         this.model = model;
 
         this.messages = new ArrayList<>();
-        this.messages.add(new Message("user", prompt));
+        this.messages.add(new MessageDTO("user", prompt));
     }
 
     public String getModel() {
         return model;
     }
 
-    public List<Message> getMessages() {
+    public List<MessageDTO> getMessages() {
         return messages;
     }
 

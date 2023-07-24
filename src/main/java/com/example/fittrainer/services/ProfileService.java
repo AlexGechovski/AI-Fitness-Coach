@@ -48,7 +48,7 @@ public class ProfileService {
         return profileRepository.findById(profileId);
     }
 
-    public Profile updateProfile(String username, Profile updatedProfile) {
+    public FullProfile updateProfile(String username, Profile updatedProfile) {
         String tokenUsername = jwtService.getCurrentUsername();
         User userDetails = userService.findByUsername(tokenUsername);
 
@@ -67,7 +67,8 @@ public class ProfileService {
         existingProfile.setMaintainCalories(updatedProfile.getMaintainCalories());
 
         // Save the updated profile back to the repository
-        return profileRepository.update(existingProfile);
+        profileRepository.update(existingProfile);
+        return getFullProfileByUsername(username);
     }
 
 

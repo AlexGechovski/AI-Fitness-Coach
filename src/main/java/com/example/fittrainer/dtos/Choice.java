@@ -3,9 +3,9 @@ package com.example.fittrainer.dtos;
 public class Choice {
 
     private int index;
-    private Message message;
+    private MessageDTO message;
 
-    public Message getMessage() {
+    public MessageDTO getMessage() {
         return message;
     }
 

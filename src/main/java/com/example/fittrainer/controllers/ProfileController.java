@@ -57,8 +57,8 @@ public class ProfileController {
     // Update profile details by username
     @PutMapping("/{username}")
     @ApiOperation("Update profile details by username")
-    public ResponseEntity<Profile> updateProfile(@PathVariable String username, @RequestBody Profile profile) {
-        Profile updatedProfile = profileService.updateProfile(username, profile);
+    public ResponseEntity<FullProfile> updateProfile(@PathVariable String username, @RequestBody Profile profile) {
+        FullProfile updatedProfile = profileService.updateProfile(username, profile);
         return ResponseEntity.ok(updatedProfile);
     }
 
