@@ -10,10 +10,10 @@ public class FullProfile {
     private float weight;
     private float bodyFatPercentage;
     private int maintainCalories;
-    private List<FoodAllergy> foodAllergies;
+    //private List<FoodAllergy> foodAllergies;
     private List<Goals> goals;
     private List<HealthCondition> healthConditions;
-    private List<DietaryPreferences> dietaryPreferences;
+    //private List<DietaryPreferences> dietaryPreferences;
 
     public FullProfile(Profile profile, List<DietaryPreferences> dietaryPreferences, List<FoodAllergy> foodAllergies,
                        List<Goals> goals, List<HealthCondition> healthConditions) {
@@ -23,10 +23,10 @@ public class FullProfile {
         this.weight = profile.getWeight();
         this.bodyFatPercentage = profile.getBodyFatPercentage();
         this.maintainCalories = profile.getMaintainCalories();
-        this.foodAllergies = foodAllergies;
+//        this.foodAllergies = foodAllergies;
         this.goals = goals;
         this.healthConditions = healthConditions;
-        this.dietaryPreferences = dietaryPreferences;
+//        this.dietaryPreferences = dietaryPreferences;
     }
 
     private String goalsToString() {
@@ -116,13 +116,13 @@ public class FullProfile {
         this.maintainCalories = maintainCalories;
     }
 
-    public List<FoodAllergy> getFoodAllergies() {
-        return foodAllergies;
-    }
-
-    public void setFoodAllergies(List<FoodAllergy> foodAllergies) {
-        this.foodAllergies = foodAllergies;
-    }
+//    public List<FoodAllergy> getFoodAllergies() {
+//        return foodAllergies;
+//    }
+//
+//    public void setFoodAllergies(List<FoodAllergy> foodAllergies) {
+//        this.foodAllergies = foodAllergies;
+//    }
 
     public List<Goals> getGoals() {
         return goals;

@@ -4,12 +4,21 @@ public class MessageDTO {
     private String role;
     private String content;
 
+
     public MessageDTO() {
     }
 
     public MessageDTO(String user, String prompt) {
         this.role = user;
         this.content = prompt;
+    }
+
+    @Override
+    public String toString() {
+        return "MessageDTO{" +
+                "role='" + role + '\'' +
+                ", content='" + content + '\'' +
+                '}';
     }
 
     public String getRole() {

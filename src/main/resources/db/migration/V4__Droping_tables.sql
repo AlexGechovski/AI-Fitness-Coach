@@ -132,7 +132,7 @@ CREATE TABLE `Message` (
                            `MessageID` INT AUTO_INCREMENT PRIMARY KEY,
                            `ChatID` INT,
                            `Role` VARCHAR(20),
-                           `Content` VARCHAR(500),
+                           `Content` VARCHAR(16000),
                            `Timestamp` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                            FOREIGN KEY (`ChatID`) REFERENCES `Chat` (`ChatID`)
 );

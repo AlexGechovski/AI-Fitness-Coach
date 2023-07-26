@@ -5,7 +5,11 @@ import com.example.fittrainer.dtos.MessageDTO;
 import com.example.fittrainer.models.Chat;
 import com.example.fittrainer.models.Message;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 
@@ -13,9 +17,11 @@ import java.util.List;
 public class ChatRepository {
 
     private final JdbcTemplate jdbcTemplate;
+    private final DataSourceTransactionManager transactionManager;
 
-    public ChatRepository(JdbcTemplate jdbcTemplate) {
+    public ChatRepository(JdbcTemplate jdbcTemplate, DataSourceTransactionManager transactionManager) {
         this.jdbcTemplate = jdbcTemplate;
+        this.transactionManager = transactionManager;
     }
 
     // Save a new chat and its associated messages
@@ -27,18 +33,18 @@ public class ChatRepository {
         chat.setChatId(chatId);
 
         for (Message message : chat.getMessages()) {
-            saveMessage(chat, message);
+            saveMessage(chat.getChatId(), message);
         }
 
         return chatId;
     }
 
     // Save a new message associated with a chat
-    private void saveMessage(Chat chat, Message message) {
+    public void saveMessage(Long chatId, Message message) {
         String insertMessageSql = "INSERT INTO Message (chatId, role, content, timestamp) VALUES (?, ?, ?, ?)";
         jdbcTemplate.update(
                 insertMessageSql,
-                chat.getChatId(),
+                chatId,
                 message.getRole(),
                 message.getContent(),
                 message.getTimestamp()
@@ -78,6 +84,22 @@ public class ChatRepository {
         );
     }
 
+    //Get ChatDTO by chatId
+    public ChatDTO getChatByChatId(Long chatId) {
+        String selectChatSql = "SELECT * FROM Chat WHERE chatId = ?";
+        return jdbcTemplate.queryForObject(
+                selectChatSql,
+                new Object[]{chatId},
+                (rs, rowNum) -> {
+                    ChatDTO chat = new ChatDTO();
+                    chat.setChatId(rs.getLong("chatId"));
+                    chat.setModel(rs.getString("modelName"));
+                    chat.setMessages(getMessagesByChatIdDTO(chat.getChatId()));
+                    return chat;
+                }
+        );
+    }
+
     // Retrieve all chats and their associated messages
 
     public List<Chat> getAllChats() {
@@ -102,6 +124,50 @@ public class ChatRepository {
             return chat;
         }, profileId);
     }
+
+    public ChatDTO createChatWithInitialMessage(String message, int profileId, String modelName) {
+        String insertChatSql = "INSERT INTO Chat (profileId, modelName) VALUES (?, ?)";
+        jdbcTemplate.update(insertChatSql, profileId, modelName);
+
+        Long chatId = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+
+        String insertMessageSql = "INSERT INTO Message (chatId, role, content) VALUES (?, ?, ?)";
+        jdbcTemplate.update(
+                insertMessageSql,
+                chatId,
+                "system",
+                "You are a helpful fitness assistant"
+        );
+        String insertInitialMessageSql = "INSERT INTO Message (chatId, role, content) VALUES (?, ?, ?)";
+        jdbcTemplate.update(
+                insertInitialMessageSql,
+                chatId,
+                "assistant",
+                message
+        );
+
+        ChatDTO chat = new ChatDTO();
+        chat.setChatId(chatId);
+        chat.setModel(modelName);
+        chat.setMessages(getMessagesByChatIdDTO(chat.getChatId()));
+
+        return chat;
+    }
+
+    public void deleteChatByChatId(Long chatId) {
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+            @Override
+            protected void doInTransactionWithoutResult(TransactionStatus status) {
+                String deleteMessagesSql = "DELETE FROM Message WHERE chatId = ?";
+                jdbcTemplate.update(deleteMessagesSql, chatId);
+
+                String deleteChatSql = "DELETE FROM Chat WHERE chatId = ?";
+                jdbcTemplate.update(deleteChatSql, chatId);
+            }
+        });
+    }
+
 
     // Other methods for update and delete operations can be implemented as needed
 }
