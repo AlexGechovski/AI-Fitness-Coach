@@ -1,5 +1,7 @@
 package com.example.fittrainer.models;
 
+import com.example.fittrainer.dtos.MessageDTO;
+
 import java.sql.Timestamp;
 
 public class Message {
@@ -12,7 +14,18 @@ public class Message {
     // Constructors, getters, and setters
     // ...
 
-public Message() {
+    @Override
+    public String toString() {
+        return "Message{" +
+                "messageId=" + messageId +
+                ", chatId=" + chatId +
+                ", role='" + role + '\'' +
+                ", content='" + content + '\'' +
+                ", timestamp=" + timestamp +
+                '}';
+    }
+
+    public Message() {
     }
 
 
@@ -54,6 +67,10 @@ public Message() {
 
     public void setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public MessageDTO toMessageDTO() {
+        return new MessageDTO(this.role, this.content);
     }
 }
 

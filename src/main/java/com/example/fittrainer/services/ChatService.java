@@ -83,6 +83,15 @@ public class ChatService {
             e.printStackTrace();
         }
 
+        if (responseDTO.getChoices().get(0).getMessage().getFunction_call() != null) {
+            Message messageFunction = functionsService.executeFunction(responseDTO, chatGptRequestDTO);
+            System.out.println(messageFunction);
+            messageFunction.setChatId(chatId);
+            chatRepository.saveMessage(chatId, messageFunction);
+
+            return messageFunction.toMessageDTO();
+        }
+
 
         List<ChatGptResponseDTO.Choice> answers= responseDTO.getChoices();
         Message message1 = new Message();
