@@ -3,6 +3,7 @@ package com.example.fittrainer.repositories;
 import com.example.fittrainer.dtos.ChatDTO;
 import com.example.fittrainer.dtos.MessageDTO;
 import com.example.fittrainer.models.Chat;
+import com.example.fittrainer.models.FullProfile;
 import com.example.fittrainer.models.Message;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -125,7 +126,7 @@ public class ChatRepository {
         }, profileId);
     }
 
-    public ChatDTO createChatWithInitialMessage(String message, int profileId, String modelName) {
+    public ChatDTO createChatWithInitialMessage(String message, int profileId, String modelName, FullProfile fullProfile, String username) {
         String insertChatSql = "INSERT INTO Chat (profileId, modelName) VALUES (?, ?)";
         jdbcTemplate.update(insertChatSql, profileId, modelName);
 
@@ -138,12 +139,22 @@ public class ChatRepository {
                 "system",
                 "You are a helpful fitness assistant"
         );
+
         String insertInitialMessageSql = "INSERT INTO Message (chatId, role, content) VALUES (?, ?, ?)";
         jdbcTemplate.update(
                 insertInitialMessageSql,
                 chatId,
                 "assistant",
                 message
+        );
+
+        String insertInfoMessageSql = "INSERT INTO Message (chatId, role, content) VALUES (?, ?, ?)";
+        jdbcTemplate.update(
+                insertInfoMessageSql,
+                chatId,
+                "user",
+                "This is my personal information Username=" + username + " " + fullProfile.toString()
+
         );
 
         ChatDTO chat = new ChatDTO();

@@ -31,7 +31,6 @@ public class FullProfile {
 
     private String goalsToString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("[");
         for (Goals goal : goals) {
             sb.append(goal.toString());
             sb.append(", ");
@@ -39,12 +38,11 @@ public class FullProfile {
         if (!goals.isEmpty()) {
             sb.setLength(sb.length() - 2);  // Remove the last comma and space
         }
-        sb.append("]");
         return sb.toString();
     }
     private String healthConditionsToSting() {
         StringBuilder sb = new StringBuilder();
-        sb.append("[");
+
         for (HealthCondition healthCondition : healthConditions) {
             sb.append(healthCondition.toString());
             sb.append(", ");
@@ -52,18 +50,17 @@ public class FullProfile {
         if (!healthConditions.isEmpty()) {
             sb.setLength(sb.length() - 2);  // Remove the last comma and space
         }
-        sb.append("]");
         return sb.toString();
     }
     public String toString() {
-        return "FullProfile{" +
+        return
                 "age=" + age +
-                ", gender='" + gender + '\'' +
+                ", gender=" + gender +
                 ", height=" + height +
                 ", weight=" + weight +
 
-                ", goals=" + goalsToString() +
-                ", healthConditions=" + healthConditionsToSting() ;
+                ", Goals=" + goalsToString() +
+                ", HealthConditions=" + healthConditionsToSting() ;
     }
 
 

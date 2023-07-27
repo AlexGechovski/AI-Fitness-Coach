@@ -2,6 +2,7 @@ package com.example.fittrainer.services;
 
 import com.example.fittrainer.dtos.*;
 import com.example.fittrainer.models.Chat;
+import com.example.fittrainer.models.FullProfile;
 import com.example.fittrainer.models.Message;
 import com.example.fittrainer.models.Profile;
 import com.example.fittrainer.repositories.ChatRepository;
@@ -50,8 +51,10 @@ public class ChatService {
 
 // Create and set the function details
         List<FunctionDTO> functionsList = new ArrayList<>();
-        FunctionDTO function = functionsService.getWeatherFunction();
-        functionsList.add(function);
+
+        //functionsList.add(functionsService.getWeatherFunction());
+        //functionsList.add(functionsService.getPhysicalCharacteristicsFunction());
+        functionsList.add(functionsService.getCreateWorkoutPlanFunction());
 
 // Set the functions list in the ChatGptRequestDTO
         chatGptRequestDTO.setFunctions(functionsList);
@@ -62,7 +65,7 @@ public class ChatService {
 
         try {
             // Serialize the chatGptRequestDTO object to JSON string
-            String jsonString = objectMapper.writeValueAsString(chatGptRequestDTO);
+            String jsonString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(chatGptRequestDTO);
 
             // Print the JSON string
             System.out.println(jsonString);
@@ -73,15 +76,15 @@ public class ChatService {
 
         ChatGptResponseDTO responseDTO = chatGPTService.getChatGptResponse(chatGptRequestDTO);
 
-        try {
-            // Serialize the chatGptRequestDTO object to JSON string
-            String jsonString = objectMapper.writeValueAsString(responseDTO);
-
-            // Print the JSON string
-            System.out.println(jsonString);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        try {
+//            // Serialize the chatGptRequestDTO object to JSON string
+//            String jsonString = objectMapper.writeValueAsString(responseDTO);
+//
+//            // Print the JSON string
+//            System.out.println(jsonString);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
 
         if (responseDTO.getChoices().get(0).getMessage().getFunction_call() != null) {
             Message messageFunction = functionsService.executeFunction(responseDTO, chatGptRequestDTO);
@@ -104,7 +107,8 @@ public class ChatService {
 
     public ChatDTO createChatWithInitialMessage() {
         Profile user = profileService.getCurrentProfile();
-        ChatDTO chat = chatRepository.createChatWithInitialMessage("How can I help with your fitness journey?", user.getProfileId(), model);
+        FullProfile fullProfile = profileService.getFullProfileByUsername(profileService.getUserByUserId(user.getUserId()).getUsername());
+        ChatDTO chat = chatRepository.createChatWithInitialMessage("How can I help with your fitness journey?", user.getProfileId(), model , fullProfile , profileService.getUserByUserId(user.getUserId()).getUsername());
         return chat;
     }
 

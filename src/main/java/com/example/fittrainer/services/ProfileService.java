@@ -83,6 +83,10 @@ public class ProfileService {
         return profileRepository.findByUserId(userDetails.getId());
     }
 
+    public User getUserByUserId(int userId) {
+        return userService.findById(userId);
+    }
+
     public Profile getCurrentProfile() {
         String tokenUsername = jwtService.getCurrentUsername();
         User userDetails = userService.findByUsername(tokenUsername);

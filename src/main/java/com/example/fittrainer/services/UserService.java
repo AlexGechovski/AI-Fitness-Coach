@@ -39,6 +39,10 @@ public class UserService {
         userRepository.delete(id);
     }
 
+    public User findById(int userId) {
+        return userRepository.findById(userId);
+    }
+
     // Other service methods
 }
 

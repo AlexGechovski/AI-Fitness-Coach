@@ -9,9 +9,7 @@ public class HealthCondition {
 
     @Override
     public String toString() {
-        return "HealthCondition{" +
-                "conditionDescription='" + conditionDescription + '\'' +
-                '}';
+        return " " + conditionDescription ;
     }
 
     public int getConditionId() {

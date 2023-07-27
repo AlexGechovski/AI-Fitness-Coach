@@ -13,7 +13,7 @@ public class Goals {
 
     @Override
     public String toString() {
-        return "Goal-" + goalDescription;
+        return " " + goalDescription;
     }
 
     public int getGoalId() {

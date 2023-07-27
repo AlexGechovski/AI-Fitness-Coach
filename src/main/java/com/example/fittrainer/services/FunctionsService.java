@@ -21,12 +21,17 @@ public class FunctionsService {
 
     public Message executeFunction(ChatGptResponseDTO responseDTO, ChatGptRequestDTO chatGptRequestDTO) {
         String functionName = responseDTO.getChoices().get(0).getMessage().getFunction_call().getName();
-        String arguments = responseDTO.getChoices().get(0).getMessage().getFunction_call().getArguments();
         String response;
 
         switch (functionName){
             case "get_current_weather":
                 response = callWeatherFunction(responseDTO.getChoices().get(0).getMessage().getFunction_call());
+                break;
+            case "create_workout_plan":
+                response = callCreateWorkoutPlan(responseDTO.getChoices().get(0).getMessage().getFunction_call());
+                break;
+            case "get_information_fitness_level_health_conditions_goals":
+                response = callPhysicalCharacteristicsFunction();
                 break;
             default:
                 throw new RuntimeException("Function not found");
@@ -41,10 +46,21 @@ public class FunctionsService {
         ChatGptResponseDTO responseFunctionDTO = chatGPTService.getChatGptResponse(chatGptRequestDTO);
 
         ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            // Serialize the chatGptRequestDTO object to JSON string
+            System.out.println("ChatGptRequestDTO:");
+            String jsonString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(chatGptRequestDTO);
+
+            // Print the JSON string
+            System.out.println(jsonString);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         try {
             // Serialize the chatGptRequestDTO object to JSON string
-            String jsonString = objectMapper.writeValueAsString(responseFunctionDTO);
+            System.out.println("ChatGptResponseDTO:");
+            String jsonString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(responseFunctionDTO);
 
             // Print the JSON string
             System.out.println(jsonString);
@@ -59,6 +75,92 @@ public class FunctionsService {
 
 
         return message1;
+    }
+
+    private String callCreateWorkoutPlan(FunctionCall functionCall) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            JsonNode argumentsJson = objectMapper.readTree(functionCall.getArguments());
+            String location = argumentsJson.get("location").asText();
+
+            // Call the getCurrentWeather function with the location argument
+            String weatherResponse = getCurrentWeather(location);
+
+            System.out.println(weatherResponse);
+            return weatherResponse;
+        } catch (Exception e) {
+            throw new RuntimeException("Error parsing arguments");
+        }
+    }
+
+    private String createWorkoutPlan() {
+        return "Here is your workout plan for today: \n" +
+                "Warmup: 5 minutes of light cardio\n" +
+                "Workout: 3 sets of 10 reps of the following exercises:\n" +
+                "1. Pushups\n" +
+                "2. Squats\n" +
+                "3. Lunges\n" +
+                "4. Pullups\n" +
+                "5. Planks\n" +
+                "Cooldown: 5 minutes of light cardio";
+    }
+
+    private String callPhysicalCharacteristicsFunction() {
+        return "I am 5'10\" tall and weigh 180 lbs.";
+    }
+
+    public FunctionDTO getCreateWorkoutPlanFunction(){
+        FunctionDTO function = new FunctionDTO();
+        function.setName("create_workout_plan");
+        function.setDescription("Creates a weekly workout plan for the user");
+
+        ParameterSchema parameterSchema = new ParameterSchema();
+        parameterSchema.setType("object");
+
+// Create a map to hold the properties of the parameter
+        Map<String, Object> properties = new HashMap<>();
+
+        Map<String, String> usernameProperty = new HashMap<>();
+        usernameProperty.put("type", "string");
+        usernameProperty.put("description", "The username");
+        properties.put("username", usernameProperty);
+
+        String[] requiredProperties = {"username"}; // Add more if needed
+        parameterSchema.setRequired(requiredProperties); // Add more if needed
+
+        parameterSchema.setProperties(properties);
+
+        function.setParameters(parameterSchema);
+
+        return function;
+    }
+
+    public FunctionDTO getPhysicalCharacteristicsFunction(){
+        FunctionDTO function = new FunctionDTO();
+        function.setName("get_information_fitness_level_health_conditions_goals");
+        function.setDescription("Information about the user current fitness level, goals, and any existing health conditions");
+
+        ParameterSchema parameterSchema = new ParameterSchema();
+        parameterSchema.setType("object");
+
+// Create a map to hold the properties of the parameter
+        Map<String, Object> properties = new HashMap<>();
+
+        Map<String, String> userProperty = new HashMap<>();
+        userProperty.put("type", "string");
+        userProperty.put("description", "The user's name");
+        properties.put("user", userProperty);
+
+        String[] requiredProperties = new String[0]; // Add more if needed
+        parameterSchema.setRequired(requiredProperties);
+
+
+        parameterSchema.setProperties(properties);
+
+// Set the parameter schema for the function
+        function.setParameters(parameterSchema);
+
+        return function;
     }
 
     public FunctionDTO getWeatherFunction(){
@@ -112,8 +214,6 @@ public class FunctionsService {
 
             // Call the getCurrentWeather function with the location argument
             String weatherResponse = getCurrentWeather(location);
-
-
 
             System.out.println(weatherResponse);
             return weatherResponse;

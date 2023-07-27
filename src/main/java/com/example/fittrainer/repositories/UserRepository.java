@@ -82,6 +82,19 @@ public class UserRepository {
         });
     }
 
+    public User findById(int userId) {
+        String query = "SELECT * FROM users WHERE id = ?";
+        return jdbcTemplate.queryForObject(query, new Object[]{userId}, (rs, rowNum) -> {
+            User user = new User();
+            user.setId(rs.getLong("id"));
+            user.setUsername(rs.getString("username"));
+            user.setPassword(rs.getString("password"));
+            user.setEmail(rs.getString("email"));
+            user.setRegistrationDate(rs.getDate("registration_date").toLocalDate());
+            user.setRole(UserRole.valueOf(rs.getString("role")));
+            return user;
+        });
+    }
 
 
     // Other CRUD operations and custom query methods
