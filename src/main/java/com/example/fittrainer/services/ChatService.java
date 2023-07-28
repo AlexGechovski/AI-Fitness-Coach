@@ -55,6 +55,7 @@ public class ChatService {
         //functionsList.add(functionsService.getWeatherFunction());
         //functionsList.add(functionsService.getPhysicalCharacteristicsFunction());
         functionsList.add(functionsService.getCreateWorkoutPlanFunction());
+        functionsList.add(functionsService.getDeleteWorkoutPlanFunction());
 
 // Set the functions list in the ChatGptRequestDTO
         chatGptRequestDTO.setFunctions(functionsList);
@@ -76,19 +77,19 @@ public class ChatService {
 
         ChatGptResponseDTO responseDTO = chatGPTService.getChatGptResponse(chatGptRequestDTO);
 
-//        try {
-//            // Serialize the chatGptRequestDTO object to JSON string
-//            String jsonString = objectMapper.writeValueAsString(responseDTO);
-//
-//            // Print the JSON string
-//            System.out.println(jsonString);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
+        try {
+            // Serialize the chatGptRequestDTO object to JSON string
+            String jsonString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(responseDTO);
+
+            // Print the JSON string
+            System.out.println(jsonString);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         if (responseDTO.getChoices().get(0).getMessage().getFunction_call() != null) {
             Message messageFunction = functionsService.executeFunction(responseDTO, chatGptRequestDTO);
-            System.out.println(messageFunction);
+
             messageFunction.setChatId(chatId);
             chatRepository.saveMessage(chatId, messageFunction);
 

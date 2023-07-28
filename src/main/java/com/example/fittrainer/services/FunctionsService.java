@@ -2,6 +2,7 @@ package com.example.fittrainer.services;
 
 import com.example.fittrainer.dtos.*;
 import com.example.fittrainer.models.Message;
+import com.example.fittrainer.models.Workout;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
@@ -14,9 +15,11 @@ import java.util.Map;
 public class FunctionsService {
 
     private final ChatGPTService chatGPTService;
+    private final UserWorkoutDayService userWorkoutDayService;
 
-    public FunctionsService(ChatGPTService chatGPTService) {
+    public FunctionsService(ChatGPTService chatGPTService, UserWorkoutDayService userWorkoutDayService) {
         this.chatGPTService = chatGPTService;
+        this.userWorkoutDayService = userWorkoutDayService;
     }
 
     public Message executeFunction(ChatGptResponseDTO responseDTO, ChatGptRequestDTO chatGptRequestDTO) {
@@ -28,7 +31,11 @@ public class FunctionsService {
                 response = callWeatherFunction(responseDTO.getChoices().get(0).getMessage().getFunction_call());
                 break;
             case "create_workout_plan":
-                response = callCreateWorkoutPlan(responseDTO.getChoices().get(0).getMessage().getFunction_call());
+                List<UserWeeklyWorkoutDTO> workout= callCreateWorkoutPlan(responseDTO.getChoices().get(0).getMessage().getFunction_call());
+                response = workout.toString();
+                break;
+            case "delete_workout_plan":
+                response = callDeleteWorkout(responseDTO.getChoices().get(0).getMessage().getFunction_call());
                 break;
             case "get_information_fitness_level_health_conditions_goals":
                 response = callPhysicalCharacteristicsFunction();
@@ -77,36 +84,73 @@ public class FunctionsService {
         return message1;
     }
 
-    private String callCreateWorkoutPlan(FunctionCall functionCall) {
+    private String callDeleteWorkout(FunctionCall functionCall) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             JsonNode argumentsJson = objectMapper.readTree(functionCall.getArguments());
-            String location = argumentsJson.get("location").asText();
+            String username = argumentsJson.get("username").asText();
 
-            // Call the getCurrentWeather function with the location argument
-            String weatherResponse = getCurrentWeather(location);
+            if (userWorkoutDayService.getUserWeeklyWorkout(username).isEmpty()) {
+                return "No workout plan to delete";
+            }
+            userWorkoutDayService.deleteUserWorkoutDay(username);
+            System.out.println(userWorkoutDayService.getUserWeeklyWorkout(username));
+            if (userWorkoutDayService.getUserWeeklyWorkout(username).isEmpty()) {
+                return "Workout plan deleted";
+            } else {
+                return "Could not delete workout plan";
+            }
 
-            System.out.println(weatherResponse);
-            return weatherResponse;
         } catch (Exception e) {
             throw new RuntimeException("Error parsing arguments");
         }
     }
 
-    private String createWorkoutPlan() {
-        return "Here is your workout plan for today: \n" +
-                "Warmup: 5 minutes of light cardio\n" +
-                "Workout: 3 sets of 10 reps of the following exercises:\n" +
-                "1. Pushups\n" +
-                "2. Squats\n" +
-                "3. Lunges\n" +
-                "4. Pullups\n" +
-                "5. Planks\n" +
-                "Cooldown: 5 minutes of light cardio";
+    private List<UserWeeklyWorkoutDTO> callCreateWorkoutPlan(FunctionCall functionCall) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            JsonNode argumentsJson = objectMapper.readTree(functionCall.getArguments());
+            String username = argumentsJson.get("username").asText();
+            String workoutInfo = argumentsJson.get("workoutInfo").asText();
+
+            // Call the getCurrentWeather function with the location argument
+            List<UserWeeklyWorkoutDTO> workoutPlan = userWorkoutDayService.generateUserWorkoutDaysOnUserQuery(username, workoutInfo);
+
+            return workoutPlan;
+        } catch (Exception e) {
+            throw new RuntimeException("Error parsing arguments");
+        }
     }
+
 
     private String callPhysicalCharacteristicsFunction() {
         return "I am 5'10\" tall and weigh 180 lbs.";
+    }
+
+    public FunctionDTO getDeleteWorkoutPlanFunction(){
+        FunctionDTO function = new FunctionDTO();
+        function.setName("delete_workout_plan");
+        function.setDescription("Deletes a workout for the user");
+
+        ParameterSchema parameterSchema = new ParameterSchema();
+        parameterSchema.setType("object");
+
+// Create a map to hold the properties of the parameter
+        Map<String, Object> properties = new HashMap<>();
+
+        Map<String, String> usernameProperty = new HashMap<>();
+        usernameProperty.put("type", "string");
+        usernameProperty.put("description", "The username");
+        properties.put("username", usernameProperty);
+
+        String[] requiredProperties = {"username"}; // Add more if needed
+        parameterSchema.setRequired(requiredProperties); // Add more if needed
+
+        parameterSchema.setProperties(properties);
+
+        function.setParameters(parameterSchema);
+
+        return function;
     }
 
     public FunctionDTO getCreateWorkoutPlanFunction(){
@@ -124,6 +168,11 @@ public class FunctionsService {
         usernameProperty.put("type", "string");
         usernameProperty.put("description", "The username");
         properties.put("username", usernameProperty);
+
+        Map<String, String> workoutInfoProperty = new HashMap<>();
+        workoutInfoProperty.put("type", "string");
+        workoutInfoProperty.put("description", "Any information about the user's workout preferences");
+        properties.put("workoutInfo", workoutInfoProperty);
 
         String[] requiredProperties = {"username"}; // Add more if needed
         parameterSchema.setRequired(requiredProperties); // Add more if needed
@@ -215,7 +264,6 @@ public class FunctionsService {
             // Call the getCurrentWeather function with the location argument
             String weatherResponse = getCurrentWeather(location);
 
-            System.out.println(weatherResponse);
             return weatherResponse;
         } catch (Exception e) {
             throw new RuntimeException("Error parsing arguments");
