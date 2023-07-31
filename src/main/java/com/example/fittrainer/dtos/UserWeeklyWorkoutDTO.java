@@ -55,4 +55,13 @@ public class UserWeeklyWorkoutDTO {
                 return 0;
         }
     }
+
+    @Override
+    public String toString() {
+        return "UserWeeklyWorkoutDTO{" +
+                "day='" + day + '\'' +
+                ", workout='" + workout + '\'' +
+                ", exercises=" + exercises +
+                '}';
+    }
 }

@@ -1,5 +1,6 @@
 package com.example.fittrainer.controllers;
 
+import com.example.fittrainer.dtos.ExerciseDTO;
 import com.example.fittrainer.dtos.UserWeeklyWorkoutDTO;
 import com.example.fittrainer.services.UserWorkoutDayService;
 import io.swagger.annotations.ApiOperation;
@@ -82,7 +83,35 @@ public class UserWeeklyWorkoutController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/{dayId}/exercises")
+    @ApiOperation("Add an exercise to the weekly workout at a specific day")
+    public ResponseEntity<ExerciseDTO> addExerciseToWeeklyWorkoutDay(
+            @PathVariable String username,
+            @PathVariable Long dayId,
+            @RequestBody ExerciseDTO exercise) {
+        userWorkoutDayService.addExerciseToWeeklyWorkoutDay(username, dayId, exercise);
+        return ResponseEntity.ok(exercise);
+    }
 
+    @DeleteMapping("/{dayId}/exercises/{exerciseId}")
+    @ApiOperation("Delete an exercise from the weekly workout at a specific day")
+    public ResponseEntity<Void> deleteExerciseFromWeeklyWorkoutDay(
+            @PathVariable String username,
+            @PathVariable int dayId,
+            @PathVariable int exerciseId) {
+        userWorkoutDayService.deleteExerciseFromWeeklyWorkoutDay(username, dayId, exerciseId);
+        return ResponseEntity.noContent().build();
+    }
 
+    @PutMapping("/{dayId}/exercises/{exerciseId}")
+    @ApiOperation("Update an exercise from the weekly workout at a specific day")
+    public ResponseEntity<ExerciseDTO> updateExerciseFromWeeklyWorkoutDay(
+            @PathVariable String username,
+            @PathVariable int dayId,
+            @PathVariable int exerciseId,
+            @RequestBody ExerciseDTO exercise) {
+        userWorkoutDayService.updateExerciseFromWeeklyWorkoutDay(username, dayId, exerciseId, exercise);
+        return ResponseEntity.ok(exercise);
+    }
 
 }

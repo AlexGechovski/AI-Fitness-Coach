@@ -1,8 +1,7 @@
 package com.example.fittrainer.services;
-import com.example.fittrainer.dtos.ChatGptRequestDTO;
-import com.example.fittrainer.dtos.ChatGptResponseDTO;
-import com.example.fittrainer.dtos.ChatRequest;
-import com.example.fittrainer.dtos.MessageDTO;
+import com.example.fittrainer.dtos.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +20,34 @@ public class ChatGPTService {
 
     @Value("${openai.api.key}")
     private String apiKey;
+
+    public EmbeddingResponseDTO getEmbedding(EmbeddingRequestDTO requestDTO){
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(apiKey);
+
+        HttpEntity<EmbeddingRequestDTO> requestEntity = new HttpEntity<>(requestDTO, headers);
+
+        ResponseEntity<EmbeddingResponseDTO> responseEntity = restTemplate.exchange(
+                apiUrl,
+                HttpMethod.POST,
+                requestEntity,
+                EmbeddingResponseDTO.class
+        );
+
+        return parseResponse(String.valueOf(responseEntity.getBody()));
+    }
+    public EmbeddingResponseDTO parseResponse(String responseBody)  {
+        ObjectMapper objectMapper = new ObjectMapper();
+        EmbeddingResponseDTO responseDTO = null;
+        try {
+            responseDTO = objectMapper.readValue(responseBody, EmbeddingResponseDTO.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return responseDTO;
+    }
 
     public String getAnswerToQuestion(String prompt) {
         RestTemplate restTemplate = new RestTemplate();

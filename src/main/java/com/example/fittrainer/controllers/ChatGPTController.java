@@ -3,6 +3,8 @@ package com.example.fittrainer.controllers;
 
 import com.example.fittrainer.dtos.ChatGptRequestDTO;
 import com.example.fittrainer.dtos.ChatGptResponseDTO;
+import com.example.fittrainer.dtos.EmbeddingRequestDTO;
+import com.example.fittrainer.dtos.EmbeddingResponseDTO;
 import com.example.fittrainer.services.ChatGPTService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,5 +41,13 @@ public class ChatGPTController {
         }
     }
 
-
+    @PostMapping("/embeddings")
+    public ResponseEntity<EmbeddingResponseDTO> getEmbeddings(@RequestBody EmbeddingRequestDTO requestDTO) {
+        try {
+            EmbeddingResponseDTO responseDTO = chatGPTService.getEmbedding(requestDTO);
+            return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

@@ -239,4 +239,49 @@ public class UserWorkoutDayService {
         return createdWorkoutDays;
 
     }
+
+    public ExerciseDTO addExerciseToWeeklyWorkoutDay(String username, Long dayId, ExerciseDTO exercise) {
+
+        List<UserWeeklyWorkoutDTO> userWorkoutDay = getUserWeeklyWorkout(username);
+
+        if (userWorkoutDay.isEmpty()) {
+            throw new RuntimeException("User workout day not found.");
+        }
+
+        userWorkoutDay.get(Math.toIntExact(dayId)).getExercises().add(exercise);
+        deleteUserWorkoutDay(username);
+        System.out.println(userWorkoutDay.get(Math.toIntExact(dayId)));
+
+        createUserWorkoutDays(username, userWorkoutDay);
+        return exercise;
+    }
+
+    public void deleteExerciseFromWeeklyWorkoutDay(String username, int dayId, int exerciseId) {
+        List<UserWeeklyWorkoutDTO> userWorkoutDay = getUserWeeklyWorkout(username);
+
+        if (userWorkoutDay.isEmpty()) {
+            throw new RuntimeException("User workout day not found.");
+        }
+
+        userWorkoutDay.get(Math.toIntExact(dayId)).getExercises().remove(exerciseId);
+        deleteUserWorkoutDay(username);
+        System.out.println(userWorkoutDay.get(Math.toIntExact(dayId)));
+
+        createUserWorkoutDays(username, userWorkoutDay);
+
+    }
+
+    public void updateExerciseFromWeeklyWorkoutDay(String username, int dayId, int exerciseId, ExerciseDTO exercise) {
+        List<UserWeeklyWorkoutDTO> userWorkoutDay = getUserWeeklyWorkout(username);
+
+        if (userWorkoutDay.isEmpty()) {
+            throw new RuntimeException("User workout day not found.");
+        }
+
+        userWorkoutDay.get(Math.toIntExact(dayId)).getExercises().set(exerciseId, exercise);
+        deleteUserWorkoutDay(username);
+        System.out.println(userWorkoutDay.get(Math.toIntExact(dayId)));
+
+        createUserWorkoutDays(username, userWorkoutDay);
+    }
 }
