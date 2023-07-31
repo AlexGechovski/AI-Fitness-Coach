@@ -41,7 +41,7 @@ public class EmbeddingResponseDTO {
         this.usage = usage;
     }
 
-    private class UsageDTO {
+    public static class UsageDTO {
         private int promptTokens;
         private int totalTokens;
 

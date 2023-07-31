@@ -45,6 +45,7 @@ public class ChatGPTController {
     public ResponseEntity<EmbeddingResponseDTO> getEmbeddings(@RequestBody EmbeddingRequestDTO requestDTO) {
         try {
             EmbeddingResponseDTO responseDTO = chatGPTService.getEmbedding(requestDTO);
+            System.out.println(responseDTO);
             return new ResponseEntity<>(responseDTO, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

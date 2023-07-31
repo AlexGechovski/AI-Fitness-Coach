@@ -65,6 +65,13 @@ public class UserWeeklyWorkoutController {
         return ResponseEntity.ok(createdWorkoutDays);
     }
 
+    @PostMapping("/save-in-vectorDB")
+    @ApiOperation("Save user workout in vectorDB")
+    public ResponseEntity<Void> saveUserWorkoutDaysInVectorDB(@PathVariable String username) {
+        userWorkoutDayService.saveUserWorkoutDaysInVectorDB(username);
+        return ResponseEntity.noContent().build();
+    }
+
 
 //
 //    @PutMapping("/{userWorkoutDayId}")

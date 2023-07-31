@@ -113,10 +113,18 @@ CREATE TABLE UserWorkoutDay (
                                 profile_id INT,
                                 day_id INT,
                                 workout_id INT,
+                                weekly_workout_id INT,
                                 FOREIGN KEY (profile_id) REFERENCES Profile(ProfileID),
                                 FOREIGN KEY (day_id) REFERENCES Day(day_id),
                                 FOREIGN KEY (workout_id) REFERENCES Workouts(workout_id)
+                                FOREIGN KEY (weekly_workout_id) REFERENCES WeeklyWorkout(weekly_workout_id)
+                            );
+
+CREATE TABLE WeeklyWorkout (
+
+                                 weekly_workout_id INT AUTO_INCREMENT PRIMARY KEY    );
 );
+
 
 
 -- Create Chat table

@@ -1,8 +1,12 @@
 package com.example.fittrainer.dtos;
 
 public class EmbeddingRequestDTO {
-    private String input;
     private String model;
+
+    private String input;
+
+    public EmbeddingRequestDTO() {
+    }
 
     public EmbeddingRequestDTO(String input, String model) {
         this.input = input;

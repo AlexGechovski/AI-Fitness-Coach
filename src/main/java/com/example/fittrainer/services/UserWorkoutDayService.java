@@ -1,5 +1,7 @@
 package com.example.fittrainer.services;
 
+import com.example.fittrainer.dtos.EmbeddingRequestDTO;
+import com.example.fittrainer.dtos.EmbeddingResponseDTO;
 import com.example.fittrainer.dtos.ExerciseDTO;
 import com.example.fittrainer.dtos.UserWeeklyWorkoutDTO;
 import com.example.fittrainer.models.*;
@@ -283,5 +285,16 @@ public class UserWorkoutDayService {
         System.out.println(userWorkoutDay.get(Math.toIntExact(dayId)));
 
         createUserWorkoutDays(username, userWorkoutDay);
+    }
+
+    public void saveUserWorkoutDaysInVectorDB(String username) {
+        System.out.println("Saving user workout days in Vector DB");
+
+        EmbeddingRequestDTO embeddingRequestDTO = new EmbeddingRequestDTO();
+        //embeddingRequestDTO.setModel("text-embedding-ada-002");
+        embeddingRequestDTO.setInput("This is a test");
+
+        EmbeddingResponseDTO embeddingResponseDTO = chatGPTService.getEmbedding(embeddingRequestDTO);
+        System.out.println(embeddingResponseDTO.getData().get(0).getEmbedding());
     }
 }
