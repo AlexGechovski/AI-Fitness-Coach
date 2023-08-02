@@ -40,12 +40,26 @@ public class UserWorkoutDayRepository {
             userWorkoutDay.setProfileId(resultSet.getInt("profile_id"));
             userWorkoutDay.setDayId(resultSet.getInt("day_id"));
             userWorkoutDay.setWorkoutId(resultSet.getInt("workout_id"));
+            userWorkoutDay.setWorkoutDayId(resultSet.getInt("weekly_workout_id"));
             return userWorkoutDay;
         }, profileId);
     }
 
+    public List<UserWorkoutDay> getUserWorkoutDaysByWorkoutId(Long workoutId) {
+        String query = "SELECT * FROM UserWorkoutDay WHERE weekly_workout_id = ?";
+        return jdbcTemplate.query(query, (resultSet, rowNum) -> {
+            UserWorkoutDay userWorkoutDay = new UserWorkoutDay();
+            userWorkoutDay.setUserWorkoutDayId(resultSet.getInt("user_workout_day_id"));
+            // Set other properties of UserWorkoutDay
+            userWorkoutDay.setProfileId(resultSet.getInt("profile_id"));
+            userWorkoutDay.setDayId(resultSet.getInt("day_id"));
+            userWorkoutDay.setWorkoutId(resultSet.getInt("workout_id"));
+            return userWorkoutDay;
+        }, workoutId);
+    }
+
     public UserWorkoutDay save(UserWorkoutDay newUserWorkoutDay) {
-        String query = "INSERT INTO UserWorkoutDay (profile_id, day_id, workout_id) VALUES (?, ?, ?)";
+        String query = "INSERT INTO UserWorkoutDay (profile_id, day_id, workout_id, weekly_workout_id) VALUES (?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
@@ -53,6 +67,7 @@ public class UserWorkoutDayRepository {
             statement.setInt(1, newUserWorkoutDay.getProfileId());
             statement.setInt(2, newUserWorkoutDay.getDayId());
             statement.setInt(3, newUserWorkoutDay.getWorkoutId());
+            statement.setInt(4, (int) newUserWorkoutDay.getWorkoutDayId());
             return statement;
         }, keyHolder);
 
@@ -68,10 +83,17 @@ public class UserWorkoutDayRepository {
     public void deleteAll(List<UserWorkoutDay> userWorkoutDays) {
     }
 
+//    public void delete(UserWorkoutDay userWorkoutDay) {
+//        String query = "DELETE FROM UserWorkoutDay WHERE user_workout_day_id = ?";
+//        jdbcTemplate.update(query, userWorkoutDay.getUserWorkoutDayId());
+//    }
+
     public void delete(UserWorkoutDay userWorkoutDay) {
-        String query = "DELETE FROM UserWorkoutDay WHERE user_workout_day_id = ?";
+        String query = "UPDATE UserWorkoutDay SET profile_id = NULL WHERE user_workout_day_id = ?";
         jdbcTemplate.update(query, userWorkoutDay.getUserWorkoutDayId());
     }
+
+
 
 
     // Add other custom methods if needed

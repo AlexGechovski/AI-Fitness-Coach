@@ -1,15 +1,10 @@
 package com.example.fittrainer.services;
 
-import com.example.fittrainer.dtos.EmbeddingRequestDTO;
-import com.example.fittrainer.dtos.EmbeddingResponseDTO;
-import com.example.fittrainer.dtos.ExerciseDTO;
-import com.example.fittrainer.dtos.UserWeeklyWorkoutDTO;
+import com.example.fittrainer.dtos.*;
 import com.example.fittrainer.models.*;
-import com.example.fittrainer.repositories.ExerciseRepository;
-import com.example.fittrainer.repositories.UserWorkoutDayRepository;
-import com.example.fittrainer.repositories.WorkoutExerciseRepository;
-import com.example.fittrainer.repositories.WorkoutRepository;
+import com.example.fittrainer.repositories.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -17,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,21 +26,50 @@ public class UserWorkoutDayService {
     private final ProfileService profileService;
     private final ExerciseRepository exerciseRepository;
     private final ChatGPTService chatGPTService;
+    private final WeeklyWorkoutRepository weeklyWorkoutRepository;
+    private final PineconeClient pineconeClient;
 
     @Autowired
     public UserWorkoutDayService(UserWorkoutDayRepository userWorkoutDayRepository,
-                                 WorkoutExerciseRepository workoutExerciseRepository, WorkoutRepository workoutRepository, ProfileService profileService, ExerciseRepository exerciseRepository, ChatGPTService chatGPTService) {
+                                 WorkoutExerciseRepository workoutExerciseRepository, WorkoutRepository workoutRepository, ProfileService profileService, ExerciseRepository exerciseRepository, ChatGPTService chatGPTService, WeeklyWorkoutRepository weeklyWorkoutRepository, PineconeClient pineconeClient) {
         this.userWorkoutDayRepository = userWorkoutDayRepository;
         this.workoutExerciseRepository = workoutExerciseRepository;
         this.workoutRepository = workoutRepository;
         this.profileService = profileService;
         this.exerciseRepository = exerciseRepository;
         this.chatGPTService = chatGPTService;
+        this.weeklyWorkoutRepository = weeklyWorkoutRepository;
+        this.pineconeClient = pineconeClient;
     }
 
     public List<UserWeeklyWorkoutDTO> getUserWeeklyWorkout(String username) {
         Profile user = profileService.getProfileByUsername(username);
         List<UserWorkoutDay> userWorkoutDays = userWorkoutDayRepository.getUserWorkoutDaysByProfileId(user.getProfileId());
+
+        List<UserWeeklyWorkoutDTO> weeklyWorkouts = new ArrayList<>();
+
+        for (UserWorkoutDay userWorkoutDay : userWorkoutDays) {
+            UserWeeklyWorkoutDTO weeklyWorkoutDTO = new UserWeeklyWorkoutDTO();
+            weeklyWorkoutDTO.setDay(userWorkoutDay.getDay());
+            Workout workout = workoutRepository.findById(userWorkoutDay.getWorkoutId());
+            weeklyWorkoutDTO.setWorkout(workout.getName());
+            List<ExerciseDTO> exerciseDTOs = convertToExerciseDTOs(workoutExerciseRepository.getExercisesByWorkoutId(userWorkoutDay.getWorkoutId()));
+            weeklyWorkoutDTO.setExercises(exerciseDTOs);
+            weeklyWorkouts.add(weeklyWorkoutDTO);
+        }
+
+        return weeklyWorkouts;
+    }
+
+    public int getUserWeeklyWorkoutId(String username) {
+        Profile user = profileService.getProfileByUsername(username);
+        List<UserWorkoutDay> userWorkoutDays = userWorkoutDayRepository.getUserWorkoutDaysByProfileId(user.getProfileId());
+
+        return (int) userWorkoutDays.get(0).getWorkoutDayId();
+    }
+
+    public List<UserWeeklyWorkoutDTO> getUserWeeklyWorkoutById(Long workoutId) {
+        List<UserWorkoutDay> userWorkoutDays = userWorkoutDayRepository.getUserWorkoutDaysByWorkoutId(workoutId);
 
         List<UserWeeklyWorkoutDTO> weeklyWorkouts = new ArrayList<>();
 
@@ -75,7 +100,7 @@ public class UserWorkoutDayService {
         return exerciseDTOs;
     }
 
-    public UserWeeklyWorkoutDTO createUserWorkoutDay(String username, UserWeeklyWorkoutDTO userWorkoutDay) {
+    public UserWeeklyWorkoutDTO createUserWorkoutDay(String username, UserWeeklyWorkoutDTO userWorkoutDay, long weeklyWorkoutId) {
         // Retrieve the profile ID based on the username
         Profile user = profileService.getProfileByUsername(username);
 
@@ -86,11 +111,13 @@ public class UserWorkoutDayService {
         // Save the new Workout in the repository
         Workout createdWorkout = workoutRepository.save(newWorkout);
 
+
         // Create a new UserWorkoutDay object
         UserWorkoutDay newUserWorkoutDay = new UserWorkoutDay();
         newUserWorkoutDay.setProfileId(user.getProfileId());
         newUserWorkoutDay.setDayId(userWorkoutDay.getDayId());
         newUserWorkoutDay.setWorkoutId(createdWorkout.getWorkoutId());
+        newUserWorkoutDay.setWorkoutDayId(weeklyWorkoutId);
 
         // Save the new UserWorkoutDay in the repository
         UserWorkoutDay createdUserWorkoutDay = userWorkoutDayRepository.save(newUserWorkoutDay);
@@ -125,8 +152,10 @@ public class UserWorkoutDayService {
     public List<UserWeeklyWorkoutDTO> createUserWorkoutDays(String username, List<UserWeeklyWorkoutDTO> userWorkoutDays) {
         List<UserWeeklyWorkoutDTO> createdWorkoutDays = new ArrayList<>();
 
+        WeeklyWorkout weeklyWorkout = weeklyWorkoutRepository.save();
+
         for (UserWeeklyWorkoutDTO userWorkoutDay : userWorkoutDays) {
-            UserWeeklyWorkoutDTO createdWorkoutDay = createUserWorkoutDay(username, userWorkoutDay);
+            UserWeeklyWorkoutDTO createdWorkoutDay = createUserWorkoutDay(username, userWorkoutDay, weeklyWorkout.getWeeklyWorkoutId());
             createdWorkoutDays.add(createdWorkoutDay);
         }
 
@@ -187,8 +216,10 @@ public class UserWorkoutDayService {
 
         List<UserWeeklyWorkoutDTO> createdWorkoutDays = new ArrayList<>();
 
+        WeeklyWorkout weeklyWorkout = weeklyWorkoutRepository.save();
+
         for (UserWeeklyWorkoutDTO userWorkoutDay : userWeeklyWorkouts) {
-            UserWeeklyWorkoutDTO createdWorkoutDay = createUserWorkoutDay(username, userWorkoutDay);
+            UserWeeklyWorkoutDTO createdWorkoutDay = createUserWorkoutDay(username, userWorkoutDay, weeklyWorkout.getWeeklyWorkoutId());
             createdWorkoutDays.add(createdWorkoutDay);
         }
 
@@ -199,42 +230,51 @@ public class UserWorkoutDayService {
 
     public List<UserWeeklyWorkoutDTO> generateUserWorkoutDaysOnUserQuery(String username, String query) {
         // Retrieve the profile ID based on the username
+        System.out.println(query.length() <= 1);
         deleteUserWorkoutDay(username);
-        FullProfile user = profileService.getFullProfileByUsername(username);
+        List<UserWeeklyWorkoutDTO> userWeeklyWorkouts = new ArrayList<>();
 
-        String structure = "[{\"day\":\"Monday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":1},{\"day\":\"Tuesday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":2},{\"day\":\"Wednesday\",\"workout\":\"..\",\"exercises\":[],\"dayId\":3},{\"day\":\"Thursday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"duration\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":4},{\"day\":\"Friday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":5},{\"day\":\"Saturday\",\"workout\":\"..\",\"exercises\":[],\"dayId\":6},{\"day\":\"Sunday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"duration\":\"..\"}],\"dayId\":7}]";
-        String prompt =  "\nGenerate a workout program. "+query +
-                "\nConsider the following characteristics and Goals for the user: \n" +  user.toString()
-                +
-                 "\nPut it in the following JSON structure. Don't add keys that don't exist. If the a key does not have a value, leave the field empty\n Add comments to the workout after generating it" +
-                structure
-                ;
-        System.out.println(prompt);
+        if (query.length() >= 1) {
+            FullProfile user = profileService.getFullProfileByUsername(username);
 
-        String answer = chatGPTService.getAnswerToQuestion(prompt);
-        System.out.println(answer);
-        String jsonString = chatGPTService.findJson(answer);
+            String structure = "[{\"day\":\"Monday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":1},{\"day\":\"Tuesday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":2},{\"day\":\"Wednesday\",\"workout\":\"..\",\"exercises\":[],\"dayId\":3},{\"day\":\"Thursday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"duration\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":4},{\"day\":\"Friday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"},{\"name\":\"..\",\"sets\":\"..\",\"reps\":\"..\"}],\"dayId\":5},{\"day\":\"Saturday\",\"workout\":\"..\",\"exercises\":[],\"dayId\":6},{\"day\":\"Sunday\",\"workout\":\"..\",\"exercises\":[{\"name\":\"..\",\"duration\":\"..\"}],\"dayId\":7}]";
+            String prompt = "\nGenerate a workout program. " + query +
+                    "\nConsider the following characteristics and Goals for the user: \n" + user.toString()
+                    +
+                    "\nPut it in the following JSON structure. Don't add keys that don't exist. If the a key does not have a value, leave the field empty\n Add comments to the workout after generating it" +
+                    structure;
+            System.out.println(prompt);
+
+            String answer = chatGPTService.getAnswerToQuestion(prompt);
+            System.out.println(answer);
+            String jsonString = chatGPTService.findJson(answer);
 
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        objectMapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, false);
-        objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
-        TypeReference<List<UserWeeklyWorkoutDTO>> typeReference = new TypeReference<List<UserWeeklyWorkoutDTO>>() {};
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            objectMapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, false);
+            objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
+            TypeReference<List<UserWeeklyWorkoutDTO>> typeReference = new TypeReference<List<UserWeeklyWorkoutDTO>>() {
+            };
+
 
 // Deserialize JSON to List<UserWeeklyWorkoutDTO>
-        List<UserWeeklyWorkoutDTO> userWeeklyWorkouts = new ArrayList<>();
-        try {
-            userWeeklyWorkouts = objectMapper.readValue(jsonString, typeReference);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Could not deserialize JSON to List<UserWeeklyWorkoutDTO>");
+            userWeeklyWorkouts = new ArrayList<>();
+            try {
+                userWeeklyWorkouts = objectMapper.readValue(jsonString, typeReference);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Could not deserialize JSON to List<UserWeeklyWorkoutDTO>");
+            }
+        }else {
+            userWeeklyWorkouts = generateUserWorkoutDaysVectorDB(username);
         }
-
 
         List<UserWeeklyWorkoutDTO> createdWorkoutDays = new ArrayList<>();
 
+        WeeklyWorkout weeklyWorkout = weeklyWorkoutRepository.save();
+
         for (UserWeeklyWorkoutDTO userWorkoutDay : userWeeklyWorkouts) {
-            UserWeeklyWorkoutDTO createdWorkoutDay = createUserWorkoutDay(username, userWorkoutDay);
+            UserWeeklyWorkoutDTO createdWorkoutDay = createUserWorkoutDay(username, userWorkoutDay, weeklyWorkout.getWeeklyWorkoutId());
             createdWorkoutDays.add(createdWorkoutDay);
         }
 
@@ -290,11 +330,60 @@ public class UserWorkoutDayService {
     public void saveUserWorkoutDaysInVectorDB(String username) {
         System.out.println("Saving user workout days in Vector DB");
 
+        Profile profile = profileService.getCurrentProfile();
+
         EmbeddingRequestDTO embeddingRequestDTO = new EmbeddingRequestDTO();
-        //embeddingRequestDTO.setModel("text-embedding-ada-002");
-        embeddingRequestDTO.setInput("This is a test");
+        embeddingRequestDTO.setInput(profile.toString());
 
         EmbeddingResponseDTO embeddingResponseDTO = chatGPTService.getEmbedding(embeddingRequestDTO);
-        System.out.println(embeddingResponseDTO.getData().get(0).getEmbedding());
+
+        EmbeddingDTO embeddingDTO = embeddingResponseDTO.getData().get(0);
+        embeddingDTO.printEmbedding();
+        System.out.println(embeddingDTO.getEmbedding().size());
+
+
+        UpsertRequestDTO upsertRequestDTO = new UpsertRequestDTO();
+        List<UpsertRequestDTO.Vector> vectors= new ArrayList<>();
+        vectors.add(new UpsertRequestDTO.Vector(String.valueOf(getUserWeeklyWorkoutId(username)), embeddingDTO.getEmbedding()));
+        upsertRequestDTO.setVectors(vectors);
+        pineconeClient.upsert(upsertRequestDTO);
+
+//        QueryRequestDTO queryRequestDTO = new QueryRequestDTO();
+//        queryRequestDTO.setTopK(3);
+//        queryRequestDTO.setVector(embeddingDTO.getEmbedding());
+//        QueryResponseDTO queryResponseDTO = pineconeClient.query(queryRequestDTO);
+//        //queryResponseDTO.getMatches().get(0).getValues().get(0);
+//        System.out.println(queryResponseDTO.getMatches().size());
+//        System.out.println(queryResponseDTO.getMatches().get(0).getScore());
+
+    }
+
+    public List<UserWeeklyWorkoutDTO> generateUserWorkoutDaysVectorDB(String username) {
+        System.out.println("Generating user workout days in Vector DB");
+
+        Profile profile = profileService.getCurrentProfile();
+
+        EmbeddingRequestDTO embeddingRequestDTO = new EmbeddingRequestDTO();
+        embeddingRequestDTO.setInput(profile.toString());
+
+        EmbeddingResponseDTO embeddingResponseDTO = chatGPTService.getEmbedding(embeddingRequestDTO);
+
+        EmbeddingDTO embeddingDTO = embeddingResponseDTO.getData().get(0);
+
+        QueryRequestDTO queryRequestDTO = new QueryRequestDTO();
+        queryRequestDTO.setTopK(3);
+        queryRequestDTO.setVector(embeddingDTO.getEmbedding());
+        QueryResponseDTO queryResponseDTO = pineconeClient.query(queryRequestDTO);
+        if (queryResponseDTO.getMatches().size() == 0) {
+            throw new RuntimeException("No matches found");
+        }
+        if (queryResponseDTO.getMatches().get(0).getScore() < 0.5) {
+            throw new RuntimeException("No good enough match found");
+        }
+        System.out.println(queryResponseDTO.getMatches().size());
+        System.out.println(queryResponseDTO.getMatches().get(0).getScore());
+        System.out.println(queryResponseDTO.getMatches().get(0).getId());
+
+        return getUserWeeklyWorkoutById(Long.valueOf(queryResponseDTO.getMatches().get(0).getId()));
     }
 }

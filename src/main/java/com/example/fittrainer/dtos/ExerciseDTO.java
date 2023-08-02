@@ -6,6 +6,16 @@ public class ExerciseDTO {
     private String reps;
     private String duration;
 
+    @Override
+    public String toString() {
+        return "Exercise{" +
+                "name='" + name + '\'' +
+                ", sets='" + sets + '\'' +
+                ", reps='" + reps + '\'' +
+                ", duration='" + duration + '\'' +
+                '}';
+    }
+
     public ExerciseDTO() {
     }
 

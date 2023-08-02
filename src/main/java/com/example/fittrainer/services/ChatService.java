@@ -56,6 +56,9 @@ public class ChatService {
         //functionsList.add(functionsService.getPhysicalCharacteristicsFunction());
         functionsList.add(functionsService.getCreateWorkoutPlanFunction());
         functionsList.add(functionsService.getDeleteWorkoutPlanFunction());
+        functionsList.add(functionsService.getWeeklyWorkoutPlanFunction());
+        functionsList.add(functionsService.getCreateGoalFunction());
+        functionsList.add(functionsService.getCreateHealthCondition());
 
 // Set the functions list in the ChatGptRequestDTO
         chatGptRequestDTO.setFunctions(functionsList);

@@ -6,8 +6,18 @@ public class UserWorkoutDay {
     private int dayId;
     private int workoutId;
 
+    private long workoutDayId;
+
     // Constructor, getters, and setters
 
+
+    public long getWorkoutDayId() {
+        return workoutDayId;
+    }
+
+    public void setWorkoutDayId(long workoutDayId) {
+        this.workoutDayId = workoutDayId;
+    }
 
     public int getUserWorkoutDayId() {
         return userWorkoutDayId;
@@ -61,5 +71,6 @@ public class UserWorkoutDay {
                 return "Invalid day";
         }
     }
+
 
 }

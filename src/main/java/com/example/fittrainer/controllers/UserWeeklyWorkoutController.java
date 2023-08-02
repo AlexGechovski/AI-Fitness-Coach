@@ -7,6 +7,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,14 @@ public class UserWeeklyWorkoutController {
         return ResponseEntity.ok(weeklyWorkouts);
     }
 
+    @GetMapping("{workoutId}")
+    @ApiOperation("Get weekly workout by ID")
+    public ResponseEntity<List<UserWeeklyWorkoutDTO>> getUserWeeklyWorkoutById(@PathVariable String username,
+                                                                         @PathVariable Long workoutId) {
+        List<UserWeeklyWorkoutDTO> weeklyWorkout = userWorkoutDayService.getUserWeeklyWorkoutById(workoutId);
+        return ResponseEntity.ok(weeklyWorkout);
+    }
+
 //    @GetMapping("/{userWorkoutDayId}")
 //    @ApiOperation("Get a specific user workout day by ID")
 //    public ResponseEntity<UserWeeklyWorkoutDTO> getUserWorkoutDayById(@PathVariable String username,
@@ -46,8 +55,7 @@ public class UserWeeklyWorkoutController {
 //    }
     @PostMapping
     @ApiOperation("Create new user workout days")
-    public ResponseEntity<List<UserWeeklyWorkoutDTO>> createUserWorkoutDays(@PathVariable String username,
-                                                                            @RequestBody List<UserWeeklyWorkoutDTO> userWorkoutDays) {
+    public ResponseEntity<List<UserWeeklyWorkoutDTO>> createUserWorkoutDays(@PathVariable String username, @RequestBody List<UserWeeklyWorkoutDTO> userWorkoutDays) {
         List<UserWeeklyWorkoutDTO> createdWorkoutDays = userWorkoutDayService.createUserWorkoutDays(username, userWorkoutDays);
         return ResponseEntity.ok(createdWorkoutDays);
     }
@@ -57,6 +65,14 @@ public class UserWeeklyWorkoutController {
         List<UserWeeklyWorkoutDTO> createdWorkoutDays = userWorkoutDayService.generateUserWorkoutDays(username);
         return ResponseEntity.ok(createdWorkoutDays);
     }
+
+    @PostMapping("/generate-VectorDB")
+    @ApiOperation("Searches in VectorDB for user workout based on user's profile")
+    public ResponseEntity<List<UserWeeklyWorkoutDTO>> generateUserWorkoutDaysVectorDB(@PathVariable String username) {
+        List<UserWeeklyWorkoutDTO> createdWorkoutDays = userWorkoutDayService.generateUserWorkoutDaysVectorDB(username);
+        return ResponseEntity.ok(userWorkoutDayService.createUserWorkoutDays(username, createdWorkoutDays));
+    }
+
 
     @PostMapping("/generate-params")
     @ApiOperation("Generate user workout based on user's profile and input")

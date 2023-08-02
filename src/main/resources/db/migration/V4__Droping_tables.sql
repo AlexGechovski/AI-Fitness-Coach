@@ -122,7 +122,7 @@ CREATE TABLE UserWorkoutDay (
 
 CREATE TABLE WeeklyWorkout (
 
-                                 weekly_workout_id INT AUTO_INCREMENT PRIMARY KEY    );
+                                 weekly_workout_id INT AUTO_INCREMENT PRIMARY KEY
 );
 
 

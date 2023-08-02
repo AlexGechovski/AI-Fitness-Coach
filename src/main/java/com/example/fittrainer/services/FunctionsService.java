@@ -1,6 +1,8 @@
 package com.example.fittrainer.services;
 
 import com.example.fittrainer.dtos.*;
+import com.example.fittrainer.models.Goals;
+import com.example.fittrainer.models.HealthCondition;
 import com.example.fittrainer.models.Message;
 import com.example.fittrainer.models.Workout;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -16,10 +18,16 @@ public class FunctionsService {
 
     private final ChatGPTService chatGPTService;
     private final UserWorkoutDayService userWorkoutDayService;
+    private final ProfileService profileService;
+    private final GoalsService goalsService;
+    private final HealthConditionsService healthConditionsService;
 
-    public FunctionsService(ChatGPTService chatGPTService, UserWorkoutDayService userWorkoutDayService) {
+    public FunctionsService(ChatGPTService chatGPTService, UserWorkoutDayService userWorkoutDayService, ProfileService profileService, GoalsService goalsService, HealthConditionsService healthConditionsService) {
         this.chatGPTService = chatGPTService;
         this.userWorkoutDayService = userWorkoutDayService;
+        this.profileService = profileService;
+        this.goalsService = goalsService;
+        this.healthConditionsService = healthConditionsService;
     }
 
     public Message executeFunction(ChatGptResponseDTO responseDTO, ChatGptRequestDTO chatGptRequestDTO) {
@@ -29,6 +37,16 @@ public class FunctionsService {
         switch (functionName){
             case "get_current_weather":
                 response = callWeatherFunction(responseDTO.getChoices().get(0).getMessage().getFunction_call());
+                break;
+            case "create_health_condition":
+                response = callCreateHealthConditionFunction(responseDTO.getChoices().get(0).getMessage().getFunction_call());
+                break;
+            case "create_goal":
+                response = callCreateGoalFunction(responseDTO.getChoices().get(0).getMessage().getFunction_call());
+                break;
+            case "get_weekly_workout_plan":
+                List<UserWeeklyWorkoutDTO> workoutPlan= callWeeklyWorkoutPlanFunction(responseDTO.getChoices().get(0).getMessage().getFunction_call());
+                response = workoutPlan.toString();
                 break;
             case "create_workout_plan":
                 List<UserWeeklyWorkoutDTO> workout= callCreateWorkoutPlan(responseDTO.getChoices().get(0).getMessage().getFunction_call());
@@ -84,6 +102,56 @@ public class FunctionsService {
         return message1;
     }
 
+    private String callCreateHealthConditionFunction(FunctionCall functionCall) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            JsonNode argumentsJson = objectMapper.readTree(functionCall.getArguments());
+            String healthCondition = argumentsJson.get("healthCondition").asText();
+            String username = "username";
+
+            HealthCondition newHealthCondition = new HealthCondition();
+            newHealthCondition.setConditionDescription(healthCondition);
+            HealthCondition healthCondition1 = healthConditionsService.createHealthCondition(username, newHealthCondition);
+
+
+            return  "Saved goal: " + healthCondition1.getConditionDescription();
+        } catch (Exception e) {
+            throw new RuntimeException("Error parsing arguments");
+        }
+    }
+
+    private String callCreateGoalFunction(FunctionCall functionCall) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            JsonNode argumentsJson = objectMapper.readTree(functionCall.getArguments());
+            String goal = argumentsJson.get("goal").asText();
+            String username = "username";
+
+            Goals newGoal = new Goals();
+            newGoal.setGoalDescription(goal);
+
+            Goals setGoal = goalsService.createGoal(username, newGoal);
+            return  "Saved goal: " + setGoal.getGoalDescription();
+        } catch (Exception e) {
+            throw new RuntimeException("Error parsing arguments");
+        }
+    }
+
+    private List<UserWeeklyWorkoutDTO> callWeeklyWorkoutPlanFunction(FunctionCall functionCall) {
+    ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            JsonNode argumentsJson = objectMapper.readTree(functionCall.getArguments());
+            String username = argumentsJson.get("username").asText();
+
+            // Call the getCurrentWeather function with the location argument
+            List<UserWeeklyWorkoutDTO> weeklyWorkouts = userWorkoutDayService.getUserWeeklyWorkout(username);
+            return weeklyWorkouts;
+        } catch (Exception e) {
+            throw new RuntimeException("Error parsing arguments");
+        }
+
+    }
+
     private String callDeleteWorkout(FunctionCall functionCall) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
@@ -111,8 +179,10 @@ public class FunctionsService {
         try {
             JsonNode argumentsJson = objectMapper.readTree(functionCall.getArguments());
             String username = argumentsJson.get("username").asText();
-            String workoutInfo = argumentsJson.get("workoutInfo").asText();
-
+            String workoutInfo = "";
+            if (argumentsJson.has("workoutInfo")) {
+                workoutInfo = argumentsJson.get("workoutInfo").asText();
+            }
             // Call the getCurrentWeather function with the location argument
             List<UserWeeklyWorkoutDTO> workoutPlan = userWorkoutDayService.generateUserWorkoutDaysOnUserQuery(username, workoutInfo);
 
@@ -126,6 +196,84 @@ public class FunctionsService {
     private String callPhysicalCharacteristicsFunction() {
         return "I am 5'10\" tall and weigh 180 lbs.";
     }
+
+    public FunctionDTO getCreateHealthCondition(){
+        FunctionDTO function = new FunctionDTO();
+        function.setName("create_health_condition");
+        function.setDescription("Saves health condition to the user profile");
+
+        ParameterSchema parameterSchema = new ParameterSchema();
+        parameterSchema.setType("object");
+
+        Map<String, Object> properties = new HashMap<>();
+
+        Map<String, String> healthConditionProperty = new HashMap<>();
+        healthConditionProperty.put("type", "string");
+        healthConditionProperty.put("description", "The health condition");
+        properties.put("healthCondition", healthConditionProperty);
+
+        String[] requiredProperties = {"healthCondition"}; // Add more if needed
+        parameterSchema.setRequired(requiredProperties); // Add more if needed
+
+        parameterSchema.setProperties(properties);
+
+        function.setParameters(parameterSchema);
+
+        return function;
+    }
+
+    public FunctionDTO getCreateGoalFunction() {
+        FunctionDTO function = new FunctionDTO();
+        function.setName("create_goal");
+        function.setDescription("Creates a goal for the user");
+
+        ParameterSchema parameterSchema = new ParameterSchema();
+        parameterSchema.setType("object");
+
+        Map<String, Object> properties = new HashMap<>();
+
+
+        Map<String, String> goalProperty = new HashMap<>();
+        goalProperty.put("type", "string");
+        goalProperty.put("description", "The goal");
+        properties.put("goal", goalProperty);
+
+        String[] requiredProperties = {"goal"}; // Add more if needed
+        parameterSchema.setRequired(requiredProperties); // Add more if needed
+
+        parameterSchema.setProperties(properties);
+
+        function.setParameters(parameterSchema);
+
+        return function;
+    }
+
+    public FunctionDTO getWeeklyWorkoutPlanFunction() {
+        FunctionDTO function = new FunctionDTO();
+        function.setName("get_weekly_workout_plan");
+        function.setDescription("Gets the weekly workout plan for the user");
+
+        ParameterSchema parameterSchema = new ParameterSchema();
+        parameterSchema.setType("object");
+
+        Map<String, Object> properties = new HashMap<>();
+
+        Map<String, String> usernameProperty = new HashMap<>();
+        usernameProperty.put("type", "string");
+        usernameProperty.put("description", "The username");
+        properties.put("username", usernameProperty);
+
+        String[] requiredProperties = {"username"}; // Add more if needed
+        parameterSchema.setRequired(requiredProperties); // Add more if needed
+
+        parameterSchema.setProperties(properties);
+
+        function.setParameters(parameterSchema);
+
+        return function;
+
+    }
+
 
     public FunctionDTO getDeleteWorkoutPlanFunction(){
         FunctionDTO function = new FunctionDTO();
@@ -171,8 +319,14 @@ public class FunctionsService {
 
         Map<String, String> workoutInfoProperty = new HashMap<>();
         workoutInfoProperty.put("type", "string");
-        workoutInfoProperty.put("description", "Any information about the user's workout preferences");
+        workoutInfoProperty.put("description", "The information they added after asking for a workout plan");
         properties.put("workoutInfo", workoutInfoProperty);
+
+//        Map<String, String> specificsProperty = new HashMap<>();
+//        specificsProperty.put("type", "string");
+//        specificsProperty.put("description", "If the user added specifics about the workout add them here, otherwise leave blank");
+//        properties.put("workoutInfo", specificsProperty);
+
 
         String[] requiredProperties = {"username"}; // Add more if needed
         parameterSchema.setRequired(requiredProperties); // Add more if needed
